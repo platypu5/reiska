@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Configuration;
 
 using Bloomberglp.Blpapi;
 
@@ -18,6 +19,7 @@ namespace WindowsFormsApplication1
 {
     public partial class Form1 : Form
     {
+        private string[] securities;
         public Form1()
         {
             InitializeComponent();
@@ -37,7 +39,7 @@ namespace WindowsFormsApplication1
                     {
                         Element elmField = message[field];
 
-                        Invoke(new Action(() => richTextBox1.AppendText(string.Format("{0:HH:mm:ss}: {1}, {2}",
+                        Invoke(new Action(() => richTextBox1.AppendText(string.Format("{0:HH:mm:ss}: {1}, {2}\n",
                             DateTime.Now,
                             security,
                             elmField.ToString().Trim()))));
@@ -59,110 +61,111 @@ namespace WindowsFormsApplication1
             {
                 case Event.EventType.SESSION_STATUS: //use this to open the service
                     foreach (Bloomberglp.Blpapi.Message message in evt.GetMessages())
-                {
-                    if (message.MessageType.Equals("SessionStarted"))
                     {
-                        try
+                        if (message.MessageType.Equals("SessionStarted"))
                         {
-                            session.OpenServiceAsync("//blp/mktdata", new CorrelationID(-9999));
-
-                            Invoke(new Action(() => richTextBox1.AppendText("Session opened\n")));
-                        }
-                        catch (Exception)
-                        {
-                            Invoke(new Action(() => richTextBox1.AppendText("Could not open //blp/mktdata for async\n")));
+                            try
+                            {
+                                session.OpenServiceAsync("//blp/mktdata", new CorrelationID(-9999));
+                                Invoke(new Action(() => richTextBox1.AppendText("Session opened\n")));
+                            }
+                            catch (Exception)
+                            {
+                                Invoke(new Action(() => richTextBox1.AppendText("Could not open //blp/mktdata for async\n")));
+                            }
                         }
                     }
-                }
-                break;
+                    break;
 
                 case Event.EventType.SERVICE_STATUS: //use this to subscribe to ticker feeds
                     List<Subscription> slist = new List<Subscription>();
 
-                //Conflate the data to show every two seconds.
-                //  Please note that the Bloomberg API Emulator code does not treat this exactly correct: individual subscriptions should each have their own interval setting.
-                //  I have not coded that in the emulator.
-                List<string> options = new string[] { "interval=2", "start_time=16:22", "end_time=16:23" }.ToList(); //2 seconds.  //Comment this line to receive a subscription data event whenever it happens in the market.
+                    //Conflate the data to show every two seconds.
+                    //  Please note that the Bloomberg API Emulator code does not treat this exactly correct: individual subscriptions should each have their own interval setting.
+                    //  I have not coded that in the emulator.
+                    List<string> options = new string[] { "interval=2", "start_time=16:22", "end_time=16:23" }.ToList(); //2 seconds.  //Comment this line to receive a subscription data event whenever it happens in the market.
 
-                //uncomment the following line to see what a request for a nonexistent security looks like
-                //slist.Add(new Subscription("ZYZZ US EQUITY", MarketDataRequest._fields, options));
-                //  My code treats all securities that start with a 'Z' as a nonexistent security
+                    //uncomment the following line to see what a request for a nonexistent security looks like
+                    //slist.Add(new Subscription("ZYZZ US EQUITY", MarketDataRequest._fields, options));
+                    //  My code treats all securities that start with a 'Z' as a nonexistent security
 
-                slist.Add(new Subscription("SPY US EQUITY", _fields, options));
-                slist.Add(new Subscription("AAPL 150117C00600000 EQUITY", _fields, options));
+                    foreach (string security in securities)
+                    {
+                        slist.Add(new Subscription(security, _fields, options));
+                    }
 
-                session.Subscribe(slist);
-                break;
+                    //slist.Add(new Subscription("SPY US EQUITY", _fields, options));
+                    //slist.Add(new Subscription("AAPL 150117C00600000 EQUITY", _fields, options));
+
+                    session.Subscribe(slist);
+                    break;
 
                 case Event.EventType.SUBSCRIPTION_DATA:
                 case Event.EventType.RESPONSE:
                 case Event.EventType.PARTIAL_RESPONSE:
                     ProcessEvent(evt, _fields);
-                break;
+                    break;
 
                 case Event.EventType.SUBSCRIPTION_STATUS:
                     foreach (var msg in evt.GetMessages())
-                {
-                    bool fieldExceptionsExist = msg.MessageType.ToString() == "SubscriptionStarted" && msg.HasElement("exceptions", true);
-                    bool securityError = msg.MessageType.ToString() == "SubscriptionFailure" && msg.HasElement("reason", true);
-
-                    if (fieldExceptionsExist)
                     {
-                        Element elmExceptions = msg["exceptions"];
-                        for (int i = 0; i < elmExceptions.NumValues; i++)
-                        {
-                            Element elmException = elmExceptions.GetValueAsElement(i);
-                            string fieldId = elmException.GetElementAsString("fieldId");
+                        bool fieldExceptionsExist = msg.MessageType.ToString() == "SubscriptionStarted" && msg.HasElement("exceptions", true);
+                        bool securityError = msg.MessageType.ToString() == "SubscriptionFailure" && msg.HasElement("reason", true);
 
-                            Element elmReason = elmException["reason"];
+                        if (fieldExceptionsExist)
+                        {
+                            Element elmExceptions = msg["exceptions"];
+                            for (int i = 0; i < elmExceptions.NumValues; i++)
+                            {
+                                Element elmException = elmExceptions.GetValueAsElement(i);
+                                string fieldId = elmException.GetElementAsString("fieldId");
+                                Element elmReason = elmException["reason"];
+                                string source = elmReason.GetElementAsString("source");
+                                //int errorCode = elmReason.GetElementAsInt32("errorCode");
+                                string category = elmReason.GetElementAsString("category");
+                                string description = elmReason.GetElementAsString("description");
+                                Invoke(new Action(() => richTextBox1.AppendText("field error: ")));
+                                Invoke(new Action(() => richTextBox1.AppendText(string.Format("\tfieldId = {0}", fieldId))));
+                                Invoke(new Action(() => richTextBox1.AppendText(string.Format("\tsource = {0}", source))));
+                                //Invoke(new Action(() => richTextBox1.AppendText(string.Format("\terrorCode = {0}", errorCode))));
+                                Invoke(new Action(() => richTextBox1.AppendText(string.Format("\tcategory = {0}", category))));
+                                Invoke(new Action(() => richTextBox1.AppendText(string.Format("\tdescription = {0}", description))));
+                            }
+                        }
+                        else if (securityError)
+                        {
+                            string security = msg.TopicName;
+                            Element elmReason = msg["reason"];
                             string source = elmReason.GetElementAsString("source");
-                            //int errorCode = elmReason.GetElementAsInt32("errorCode");
+                            int errorCode = elmReason.GetElementAsInt32("errorCode");
                             string category = elmReason.GetElementAsString("category");
                             string description = elmReason.GetElementAsString("description");
-
-                            Invoke(new Action(() => richTextBox1.AppendText("field error: ")));
-                            Invoke(new Action(() => richTextBox1.AppendText(string.Format("\tfieldId = {0}", fieldId))));
+                            Invoke(new Action(() => richTextBox1.AppendText("security not found: ")));
+                            Invoke(new Action(() => richTextBox1.AppendText(string.Format("\tsecurity = {0}", security))));
                             Invoke(new Action(() => richTextBox1.AppendText(string.Format("\tsource = {0}", source))));
-                            //Invoke(new Action(() => richTextBox1.AppendText(string.Format("\terrorCode = {0}", errorCode))));
+                            Invoke(new Action(() => richTextBox1.AppendText(string.Format("\terrorCode = {0}", errorCode))));
                             Invoke(new Action(() => richTextBox1.AppendText(string.Format("\tcategory = {0}", category))));
                             Invoke(new Action(() => richTextBox1.AppendText(string.Format("\tdescription = {0}", description))));
                         }
                     }
-                    else if (securityError)
-                    {
-                        string security = msg.TopicName;
-
-                        Element elmReason = msg["reason"];
-                        string source = elmReason.GetElementAsString("source");
-                        int errorCode = elmReason.GetElementAsInt32("errorCode");
-                        string category = elmReason.GetElementAsString("category");
-                        string description = elmReason.GetElementAsString("description");
-
-                        Invoke(new Action(() => richTextBox1.AppendText("security not found: ")));
-                        Invoke(new Action(() => richTextBox1.AppendText(string.Format("\tsecurity = {0}", security))));
-                        Invoke(new Action(() => richTextBox1.AppendText(string.Format("\tsource = {0}", source))));
-                        Invoke(new Action(() => richTextBox1.AppendText(string.Format("\terrorCode = {0}", errorCode))));
-                        Invoke(new Action(() => richTextBox1.AppendText(string.Format("\tcategory = {0}", category))));
-                        Invoke(new Action(() => richTextBox1.AppendText(string.Format("\tdescription = {0}", description))));
-                    }
-                }
-                break;
+                    break;
 
                 default:
                     foreach (var msg in evt.GetMessages())
-                {
-                    Invoke(new Action(() => richTextBox1.AppendText(msg.ToString())));
-                }
-                break;
+                    {
+                        Invoke(new Action(() => richTextBox1.AppendText(msg.ToString())));
+                    }
+                    break;
             }
         }
 
 
         private void button1_Click(object sender, EventArgs e)
         {
+            securities = (string[])System.Configuration.ConfigurationManager.GetSection("SecurityConfig");
             SessionOptions sessionOptions = new SessionOptions();
             sessionOptions.ServerHost = "localhost";
-            sessionOptions.ServerPort = 8194;
+            sessionOptions.ServerPort = 8194; 
             Session session = new Session(sessionOptions, new EventHandler(ProcessEvent));
             session.StartAsync();
 
