@@ -19,7 +19,10 @@ namespace WindowsFormsApplication1
 {
     public partial class Form1 : Form
     {
-        string[] secConfig;
+        string[] securityList1;
+        string[] securityList2;
+        TransactionComputer tc;
+
         public Form1()
         {
             InitializeComponent();
@@ -89,9 +92,14 @@ namespace WindowsFormsApplication1
                     //slist.Add(new Subscription("ZYZZ US EQUITY", MarketDataRequest._fields, options));
                     //  My code treats all securities that start with a 'Z' as a nonexistent security
 
-                    foreach (string security in secConfig)
+                    foreach (string security in securityList1)
                     {
-                        Invoke(new Action(() => richTextBox1.AppendText("adding security\n")));
+                        Invoke(new Action(() => richTextBox1.AppendText("adding security 1\n")));
+                        slist.Add(new Subscription(security, _fields, options));
+                    }
+                    foreach (string security in securityList2)
+                    {
+                        Invoke(new Action(() => richTextBox1.AppendText("adding security 2\n")));
                         slist.Add(new Subscription(security, _fields, options));
                     }
                     Invoke(new Action(() => richTextBox1.AppendText("added securities\n")));
@@ -164,7 +172,9 @@ namespace WindowsFormsApplication1
 
         private void button1_Click(object sender, EventArgs e)
         {
-            secConfig = ConfigurationManager.AppSettings["securities"].Split(',').Select(s => s.Trim()).ToArray();
+            securityList1 = ConfigurationManager.AppSettings["securities1"].Split(',').Select(s => s.Trim()).ToArray();
+            securityList2 = ConfigurationManager.AppSettings["securities2"].Split(',').Select(s => s.Trim()).ToArray();
+            tc = new TransactionComputer(securityList1, securityList2);
             SessionOptions sessionOptions = new SessionOptions();
             sessionOptions.ServerHost = "localhost";
             sessionOptions.ServerPort = 8194; 
