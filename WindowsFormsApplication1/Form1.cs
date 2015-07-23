@@ -19,7 +19,7 @@ namespace WindowsFormsApplication1
 {
     public partial class Form1 : Form
     {
-        private string[] securities;
+        string[] secConfig;
         public Form1()
         {
             InitializeComponent();
@@ -89,10 +89,12 @@ namespace WindowsFormsApplication1
                     //slist.Add(new Subscription("ZYZZ US EQUITY", MarketDataRequest._fields, options));
                     //  My code treats all securities that start with a 'Z' as a nonexistent security
 
-                    foreach (string security in securities)
+                    foreach (string security in secConfig)
                     {
+                        Invoke(new Action(() => richTextBox1.AppendText("adding security\n")));
                         slist.Add(new Subscription(security, _fields, options));
                     }
+                    Invoke(new Action(() => richTextBox1.AppendText("added securities\n")));
 
                     //slist.Add(new Subscription("SPY US EQUITY", _fields, options));
                     //slist.Add(new Subscription("AAPL 150117C00600000 EQUITY", _fields, options));
@@ -162,7 +164,7 @@ namespace WindowsFormsApplication1
 
         private void button1_Click(object sender, EventArgs e)
         {
-            securities = (string[])System.Configuration.ConfigurationManager.GetSection("SecurityConfig");
+            secConfig = ConfigurationManager.AppSettings["securities"].Split(',').Select(s => s.Trim()).ToArray();
             SessionOptions sessionOptions = new SessionOptions();
             sessionOptions.ServerHost = "localhost";
             sessionOptions.ServerPort = 8194; 
