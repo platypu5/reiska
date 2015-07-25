@@ -42,9 +42,22 @@ namespace WindowsFormsApplication1
                     {
                         Element elmField = message[field];
 
-                        Invoke(new Action(() => richTextBox1.AppendText(string.Format("{0:HH:mm:ss}: {1}, {2}\n",
+                        string transaction = "NO TRANSACTION";
+                        if (field.Equals("ASK"))
+                        {
+                            tc.updateAsk(security, elmField.GetValueAsFloat64());
+                        }
+                        else if (field.Equals("BID"))
+                        {
+                            tc.updateBid(security, elmField.GetValueAsFloat64());
+                        }
+                        transaction = tc.computeTransaction(security);
+
+                        Invoke(new Action(() =>
+                          richTextBox1.AppendText
+                          (string.Format("-\n{0:HH:mm:ss}\nTRANSACTION\n{1}\nELMFIELD\n{2}\n-\n",
                             DateTime.Now,
-                            security,
+                            transaction,
                             elmField.ToString().Trim()))));
                     }
                 }
