@@ -43,13 +43,21 @@ namespace WindowsFormsApplication1
                         Element elmField = message[field];
 
                         string transaction = "NO TRANSACTION";
-                        if (field.Equals("ASK"))
+                        if (field.Equals("BEST_ASK1"))
                         {
                             tc.updateAsk(security, elmField.GetValueAsFloat64());
                         }
-                        else if (field.Equals("BID"))
+                        else if (field.Equals("BEST_BID1"))
                         {
                             tc.updateBid(security, elmField.GetValueAsFloat64());
+                        }
+                        if (field.Equals("BEST_ASK1_SZ"))
+                        {
+                            tc.updateAskSize(security, elmField.GetValueAsFloat64());
+                        }
+                        else if (field.Equals("BEST_BID1_SZ"))
+                        {
+                            tc.updateBidSize(security, elmField.GetValueAsFloat64());
                         }
                         transaction = tc.computeTransaction(security);
 
@@ -70,8 +78,10 @@ namespace WindowsFormsApplication1
             Invoke(new Action(() => richTextBox1.AppendText("ProcessEvent(Event, Session)\n")));
             List<string> _fields;
             _fields = new List<String>();
-            _fields.Add("BID");
-            _fields.Add("ASK");
+            _fields.Add("BEST_BID1");
+            _fields.Add("BEST_ASK1");
+            _fields.Add("BEST_BID1_SZ");
+            _fields.Add("BEST_ASK1_SZ");
 
             switch (evt.Type)
             {
