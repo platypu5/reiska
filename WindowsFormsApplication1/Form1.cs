@@ -21,6 +21,9 @@ namespace WindowsFormsApplication1
     {
         string[] securityList1;
         string[] securityList2;
+        string[] currencyList1;
+        string[] currencyList2;
+        string baseCurrency;
         TransactionComputer tc;
 
         public Form1()
@@ -35,6 +38,10 @@ namespace WindowsFormsApplication1
             foreach (Bloomberglp.Blpapi.Message message in evt.GetMessages())
             {
                 string security = message.TopicName;
+                Invoke(new Action(() =>
+                          richTextBox1.AppendText
+                          (string.Format("GOT SECURITY: {0}",
+                            security))));
                 foreach (var field in fields)
                 {
                     //This ignores the extraneous fields in the response
@@ -43,27 +50,54 @@ namespace WindowsFormsApplication1
                         Element elmField = message[field];
 
                         string transaction = "NO TRANSACTION";
-                        if (field.Equals("BEST_ASK1"))
+                        string retval = "";
+                        if (security.Contains("Curncy"))
                         {
-                            tc.updateAsk(security, elmField.GetValueAsFloat64());
+                            Invoke(new Action(() =>
+                                richTextBox1.AppendText
+                                (string.Format("GOT CURNCY FIELD {0}\n",
+                                field))));
+
+                            if (field.Equals("LAST_PRICE"))
+                            {
+                                Invoke(new Action(() =>
+                                    richTextBox1.AppendText
+                                    ("\nGOT CURNCY LAST_PRICE\n")));   
+                                retval =
+                                    tc.updateCurrencyRate
+                                    (security.Substring(0, 3), elmField.GetValueAsFloat64());
+                            }
+                        }
+                        else if (field.Equals("BEST_ASK1"))
+                        {
+                            retval = tc.updateAsk(security, elmField.GetValueAsFloat64());
                         }
                         else if (field.Equals("BEST_BID1"))
                         {
-                            tc.updateBid(security, elmField.GetValueAsFloat64());
+                            retval = tc.updateBid(security, elmField.GetValueAsFloat64());
                         }
-                        if (field.Equals("BEST_ASK1_SZ"))
+                        else if (field.Equals("BEST_ASK1_SZ"))
                         {
-                            tc.updateAskSize(security, elmField.GetValueAsFloat64());
+                            retval = tc.updateAskSize(security, elmField.GetValueAsFloat64());
                         }
                         else if (field.Equals("BEST_BID1_SZ"))
                         {
-                            tc.updateBidSize(security, elmField.GetValueAsFloat64());
+                            retval = tc.updateBidSize(security, elmField.GetValueAsFloat64());
                         }
-                        transaction = tc.computeTransaction(security);
+                        Invoke(new Action(() =>
+                            richTextBox1.AppendText
+                            (string.Format("{0}",
+                            retval))));
 
+                        if (security.Contains("Curncy"))
+                        {
+                            continue;
+                        }
+
+                        transaction = tc.computeTransaction(security);
                         Invoke(new Action(() =>
                           richTextBox1.AppendText
-                          (string.Format("-\n{0:HH:mm:ss}\nTRANSACTION\n{1}\nELMFIELD\n{2}\n-\n",
+                          (string.Format("-\n{0:HH:mm:ss}\nTRANSACTION\n{1}\nELEMENT FIELD (FROM API):\n{2}\n-\n",
                             DateTime.Now,
                             transaction,
                             elmField.ToString().Trim()))));
@@ -78,6 +112,7 @@ namespace WindowsFormsApplication1
             Invoke(new Action(() => richTextBox1.AppendText("ProcessEvent(Event, Session)\n")));
             List<string> _fields;
             _fields = new List<String>();
+            _fields.Add("LAST_PRICE");
             _fields.Add("BEST_BID1");
             _fields.Add("BEST_ASK1");
             _fields.Add("BEST_BID1_SZ");
@@ -109,7 +144,7 @@ namespace WindowsFormsApplication1
                     //Conflate the data to show every two seconds.
                     //  Please note that the Bloomberg API Emulator code does not treat this exactly correct: individual subscriptions should each have their own interval setting.
                     //  I have not coded that in the emulator.
-                    List<string> options = new string[] { "interval=2", "start_time=16:22", "end_time=16:23" }.ToList(); //2 seconds.  //Comment this line to receive a subscription data event whenever it happens in the market.
+                    List<string> options = new string[] { "interval=2" }.ToList(); //2 seconds.  //Comment this line to receive a subscription data event whenever it happens in the market.
 
                     //uncomment the following line to see what a request for a nonexistent security looks like
                     //slist.Add(new Subscription("ZYZZ US EQUITY", MarketDataRequest._fields, options));
@@ -117,15 +152,43 @@ namespace WindowsFormsApplication1
 
                     foreach (string security in securityList1)
                     {
-                        Invoke(new Action(() => richTextBox1.AppendText("adding security 1\n")));
+                        Invoke(new Action(() =>
+                            richTextBox1.AppendText
+                            (string.Format("ADDING {0} TO SUBSCRIPTIONS\n",
+                            security))));
                         slist.Add(new Subscription(security, _fields, options));
                     }
                     foreach (string security in securityList2)
                     {
-                        Invoke(new Action(() => richTextBox1.AppendText("adding security 2\n")));
+                        Invoke(new Action(() =>
+                            richTextBox1.AppendText
+                            (string.Format("ADDING {0} TO SUBSCRIPTIONS\n",
+                            security))));
                         slist.Add(new Subscription(security, _fields, options));
                     }
                     Invoke(new Action(() => richTextBox1.AppendText("added securities\n")));
+
+                    foreach (string currency in currencyList1)
+                    {
+                        if (currency == baseCurrency) { continue; }
+                        string currencyID = currency + "EUR" + " Curncy";
+                        Invoke(new Action(() =>
+                            richTextBox1.AppendText
+                            (string.Format("ADDING {0} TO SUBSCRIPTIONS\n",
+                            currencyID))));
+                        slist.Add(new Subscription(currencyID, _fields, options));
+                    }
+                    foreach (string currency in currencyList2)
+                    {
+                        if (currency == baseCurrency) { continue; }
+                        string currencyID = currency + "EUR" + " Curncy";
+                        Invoke(new Action(() =>
+                            richTextBox1.AppendText
+                            (string.Format("ADDING {0} TO SUBSCRIPTIONS\n",
+                            currencyID))));
+                        slist.Add(new Subscription(currencyID, _fields, options));
+                    }
+                    Invoke(new Action(() => richTextBox1.AppendText("added currencies\n")));
 
                     //slist.Add(new Subscription("SPY US EQUITY", _fields, options));
                     //slist.Add(new Subscription("AAPL 150117C00600000 EQUITY", _fields, options));
@@ -197,7 +260,11 @@ namespace WindowsFormsApplication1
         {
             securityList1 = ConfigurationManager.AppSettings["securities1"].Split(',').Select(s => s.Trim()).ToArray();
             securityList2 = ConfigurationManager.AppSettings["securities2"].Split(',').Select(s => s.Trim()).ToArray();
-            tc = new TransactionComputer(securityList1, securityList2);
+            currencyList1 = ConfigurationManager.AppSettings["currencies1"].Split(',').Select(s => s.Trim()).ToArray();
+            currencyList2 = ConfigurationManager.AppSettings["currencies2"].Split(',').Select(s => s.Trim()).ToArray();
+            baseCurrency = ConfigurationManager.AppSettings["baseCurrency"];
+            tc = new TransactionComputer
+                (securityList1, securityList2, currencyList1, currencyList2, baseCurrency);
             SessionOptions sessionOptions = new SessionOptions();
             sessionOptions.ServerHost = "localhost";
             sessionOptions.ServerPort = 8194; 
