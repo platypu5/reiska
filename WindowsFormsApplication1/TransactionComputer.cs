@@ -187,57 +187,87 @@ namespace WindowsFormsApplication1
             return false; // did not find currency rate for one or both of the securities
         }
 
-        public string computeTransaction(string security)
+        public Transaction computeTransaction(string security)
         {
             int pos;
             if (!ratesExist(security))
             {
-                return "\nNO CURRENCY RATE FOUND FOR ONE OF THE SECURITIES\n";
+                return new Transaction(false, "", "", 0.0, 0.0,
+                    0, 0.0, 0.0, "\nNO CURRENCY RATE FOUND FOR ONE OF THE SECURITIES\n");
             }
             if (pos1.TryGetValue(security, out pos))
             {
-                double arbitrage = security1Bid[pos] * security1BidSize[pos] -
-                    security2Ask[pos] * security2AskSize[pos];
+                int amount = 
+                    Math.Min((int)security1BidSize[pos], (int)security2AskSize[pos]);
+                double arbitrage = 
+                    security1Bid[pos] * amount -
+                    security2Ask[pos] * amount;
                 if ( arbitrage > 10.0 )
                 {
-                    return "FEASIBLE TRANSACTION:\n" +
+                    return new Transaction(
+                        true,
+                        security,
+                        sec1NameToSec2Name[security],
+                        security1Bid[pos],
+                        security2Ask[pos],
+                        amount,
+                        currencyNameToBase[secNameToCurrencyName[security]],
+                        currencyNameToBase[secNameToCurrencyName[sec1NameToSec2Name[security]]],
+                        "FEASIBLE TRANSACTION:\n" +
                         security +
                         ", BID: " + security1Bid[pos].ToString() +
                         ", BIDSIZE: " + security1BidSize[pos].ToString() +
-                        "\n-exceeds threshold by arbitrage- " + arbitrage +  "\n" +
+                        "\n-exceeds threshold by arbitrage- " + arbitrage + "\n" +
                         sec1NameToSec2Name[security] +
                         ", ASK: " + security2Ask[pos].ToString() +
-                        ", ASKSIZE: " + security2AskSize[pos].ToString();
+                        ", ASKSIZE: " + security2AskSize[pos].ToString()
+                        );
                 }
                 else
                 {
-                    return "\nNO FEASIBLE TRANSACTION FOR: " +
-                        security + " <-> " + sec1NameToSec2Name[security] + "\n";
+                    return new Transaction(false, "", "", 0.0, 0.0,
+                    0, 0.0, 0.0, "\nNO FEASIBLE TRANSACTION FOR: " +
+                        security + " <-> " + sec1NameToSec2Name[security] + "\n");
                 }
 
             }
             else if (pos2.TryGetValue(security, out pos))
             {
-                double arbitrage = security2Bid[pos] * security2BidSize[pos] -
-                    security1Ask[pos] * security1AskSize[pos];
+                int amount =
+                    Math.Min((int)security2BidSize[pos], (int)security1AskSize[pos]);
+                double arbitrage =
+                    security2Bid[pos] * amount -
+                    security1Ask[pos] * amount;
                 if ( arbitrage > 10.0)
                 {
-                    return "FEASIBLE TRANSACTION:\n" + 
+                    return new Transaction(
+                        true,
+                        security,
+                        sec2NameToSec1Name[security],
+                        security2Bid[pos],
+                        security1Ask[pos],
+                        amount,
+                        currencyNameToBase[secNameToCurrencyName[security]],
+                        currencyNameToBase[secNameToCurrencyName[sec2NameToSec1Name[security]]],
+                        "FEASIBLE TRANSACTION:\n" +
                         security +
                         ", BID: " + security2Bid[pos].ToString() +
                         ", BIDSIZE: " + security2BidSize[pos].ToString() +
                         "\n-exceeds threshold by arbitrage- " + arbitrage + "\n" +
                         sec2NameToSec1Name[security] +
                         ", ASK: " + security1Ask[pos].ToString() +
-                        ", ASKSIZE: " + security1AskSize[pos].ToString();
+                        ", ASKSIZE: " + security1AskSize[pos].ToString()
+                        );
                 }
                 else
                 {
-                    return "\nNO FEASIBLE TRANSACTION FOR: " +
-                        security + " <-> " + sec2NameToSec1Name[security] + "\n";
+                    return new Transaction(false, "", "", 0.0, 0.0,
+                    0, 0.0, 0.0, "\nNO FEASIBLE TRANSACTION FOR: " +
+                        security + " <-> " + sec2NameToSec1Name[security] + "\n");
                 }
             }
-            return "";
+            return new Transaction(false, "", "", 0.0, 0.0,
+                    0, 0.0, 0.0, "\nNO TRANSACTION\n");
         }
     }
 }

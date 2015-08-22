@@ -25,10 +25,22 @@ namespace WindowsFormsApplication1
         string[] currencyList2;
         string baseCurrency;
         TransactionComputer tc;
+        TransactionSender ts;
 
         public Form1()
         {
             InitializeComponent();
+        }
+
+        private void sendTransaction(Transaction t)
+        {
+            string retval = ts.startSession();
+            Invoke(new Action(() =>
+                          richTextBox1.AppendText(retval)));
+            ts.sendTransaction(t);
+            retval = ts.stopSession();
+            Invoke(new Action(() =>
+                          richTextBox1.AppendText(retval)));
         }
 
         private void ProcessEvent(Event evt, List<String> fields)
@@ -48,8 +60,7 @@ namespace WindowsFormsApplication1
                     if (message.HasElement(field, excludeNullElements)) //be careful, excludeNullElements is false by default
                     {
                         Element elmField = message[field];
-
-                        string transaction = "NO TRANSACTION";
+                        
                         string retval = "";
                         if (security.Contains("Curncy"))
                         {
@@ -94,12 +105,17 @@ namespace WindowsFormsApplication1
                             continue;
                         }
 
-                        transaction = tc.computeTransaction(security);
+                        Transaction transaction = tc.computeTransaction(security);
+                        if ( transaction.isFeasible() )
+                        {
+                            sendTransaction(transaction);
+                        }
                         Invoke(new Action(() =>
                           richTextBox1.AppendText
-                          (string.Format("-\n{0:HH:mm:ss}\nTRANSACTION\n{1}\nELEMENT FIELD (FROM API):\n{2}\n-\n",
+                          (string.Format
+                            ("-\n{0:HH:mm:ss}\nTRANSACTION\n{1}\nELEMENT FIELD (FROM API):\n{2}\n-\n",
                             DateTime.Now,
-                            transaction,
+                            transaction.description,
                             elmField.ToString().Trim()))));
                     }
                 }
@@ -263,8 +279,10 @@ namespace WindowsFormsApplication1
             currencyList1 = ConfigurationManager.AppSettings["currencies1"].Split(',').Select(s => s.Trim()).ToArray();
             currencyList2 = ConfigurationManager.AppSettings["currencies2"].Split(',').Select(s => s.Trim()).ToArray();
             baseCurrency = ConfigurationManager.AppSettings["baseCurrency"];
+            sendTransaction = Convert.ToBoolean(ConfigurationManager.AppSettings["sendTransaction"]);
             tc = new TransactionComputer
                 (securityList1, securityList2, currencyList1, currencyList2, baseCurrency);
+            ts = new TransactionSender();
             SessionOptions sessionOptions = new SessionOptions();
             sessionOptions.ServerHost = "localhost";
             sessionOptions.ServerPort = 8194; 
