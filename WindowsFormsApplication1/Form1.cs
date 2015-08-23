@@ -24,6 +24,7 @@ namespace WindowsFormsApplication1
         string[] currencyList1;
         string[] currencyList2;
         string baseCurrency;
+        bool sendTransactions;
         TransactionComputer tc;
         TransactionSender ts;
 
@@ -37,7 +38,11 @@ namespace WindowsFormsApplication1
             string retval = ts.startSession();
             Invoke(new Action(() =>
                           richTextBox1.AppendText(retval)));
-            ts.sendTransaction(t);
+
+            retval = ts.sendTransaction(t);
+            Invoke(new Action(() =>
+              richTextBox1.AppendText(retval)));
+
             retval = ts.stopSession();
             Invoke(new Action(() =>
                           richTextBox1.AppendText(retval)));
@@ -279,7 +284,7 @@ namespace WindowsFormsApplication1
             currencyList1 = ConfigurationManager.AppSettings["currencies1"].Split(',').Select(s => s.Trim()).ToArray();
             currencyList2 = ConfigurationManager.AppSettings["currencies2"].Split(',').Select(s => s.Trim()).ToArray();
             baseCurrency = ConfigurationManager.AppSettings["baseCurrency"];
-            sendTransaction = Convert.ToBoolean(ConfigurationManager.AppSettings["sendTransaction"]);
+            sendTransactions = Convert.ToBoolean(ConfigurationManager.AppSettings["sendTransaction"]);
             tc = new TransactionComputer
                 (securityList1, securityList2, currencyList1, currencyList2, baseCurrency);
             ts = new TransactionSender();

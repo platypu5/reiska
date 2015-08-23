@@ -9,27 +9,27 @@ namespace WindowsFormsApplication1
     public class Transaction
     {
         public bool feasible;
-        public string security1;
-        public string security2;
-        public double price1;
-        public double price2;
+        public string securitySell;
+        public string securityBuy;
+        public double priceSell;
+        public double priceBuy;
         public int amount;
-        public double currencyRate1;
-        public double currencyRate2;
+        public double currencyRateSell;
+        public double currencyRateBuy;
         public string description;
 
         public Transaction(bool feas, string sec1, string sec2, double pr1, double pr2,
             int amt, double rate1, double rate2, string err)
         {
             feasible = feas;
-            security1 = sec1;
-            security2 = sec2;
-            price1 = pr1;
-            price2 = pr2;
+            securitySell = sec1;
+            securityBuy = sec2;
+            priceSell = pr1;
+            priceBuy = pr2;
             amount = amt;
-            currencyRate1 = rate1;
-            currencyRate2 = rate2;
-            error = err;
+            currencyRateSell = rate1;
+            currencyRateBuy = rate2;
+            description = err;
         }
 
         public bool isFeasible()

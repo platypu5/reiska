@@ -69,7 +69,7 @@ namespace WindowsFormsApplication1
             return retval;
         }
 
-        private string stopSession()
+        public string stopSession()
         {
             string retval = "";
             retval += "\nStopping session...\n";
@@ -78,20 +78,32 @@ namespace WindowsFormsApplication1
             return retval;
         }
 
-        public void sendTransaction(
+        public string sendTransaction(
             Transaction t
             )
         {
-            Request request = service.CreateRequest("CreateOrderAndRouteEx");
-            request.Set("EMSX_AMOUNT", emsx_amount);
-            request.Set("EMSX_BROKER", emsx_broker);
-            request.Set("EMSX_HAND_INSTRUCTION", emsx_hand_instruction);
-            request.Set("EMSX_ORDER_TYPE", emsx_order_type);
-            request.Set("EMSX_SIDE", emsx_side);
-            request.Set("EMSX_TICKER", emsx_ticker);
-            request.Set("EMSX_TIF", emsx_tif);
+            Request requestSell = service.CreateRequest("CreateOrderAndRouteEx");
+            requestSell.Set("EMSX_AMOUNT", t.amount);
+            requestSell.Set("EMSX_BROKER", "API");
+            requestSell.Set("EMSX_HAND_INSTRUCTION", "ANY");
+            requestSell.Set("EMSX_ORDER_TYPE", "MKT");
+            requestSell.Set("EMSX_SIDE", "SELL");
+            requestSell.Set("EMSX_TICKER", t.securitySell);
+            requestSell.Set("EMSX_TIF", "DAY");
 
-            session.SendRequest(request, new CorrelationID(-9998));
+            Request requestBuy = service.CreateRequest("CreateOrderAndRouteEx");
+            requestSell.Set("EMSX_AMOUNT", t.amount);
+            requestSell.Set("EMSX_BROKER", "API");
+            requestSell.Set("EMSX_HAND_INSTRUCTION", "ANY");
+            requestSell.Set("EMSX_ORDER_TYPE", "MKT");
+            requestSell.Set("EMSX_SIDE", "BUY");
+            requestSell.Set("EMSX_TICKER", t.securityBuy);
+            requestSell.Set("EMSX_TIF", "DAY");
+
+            session.SendRequest(requestSell, new CorrelationID(-2222));
+            session.SendRequest(requestBuy, new CorrelationID(-1111));
+
+            return "\n!!! SELLING " + t.amount + " OF " + t.securitySell + " BUYING " + t.securityBuy + "!!!\n";
         }
     }
 }
