@@ -32,6 +32,19 @@ namespace WindowsFormsApplication1
             description = err;
         }
 
+        public string toString()
+        {
+            return "\n" +
+                "FEASIBLE: " + feasible.ToString() +
+                " SELLING " + 
+                amount + 
+                " OF " + 
+                securitySell + 
+                " BUYING " + 
+                securityBuy + "\n";
+        }
+
+
         public bool isFeasible()
         {
             return feasible;

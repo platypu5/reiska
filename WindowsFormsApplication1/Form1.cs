@@ -111,17 +111,34 @@ namespace WindowsFormsApplication1
                         }
 
                         Transaction transaction = tc.computeTransaction(security);
-                        if ( transaction.isFeasible() )
+                        if (sendTransactions)
                         {
-                            sendTransaction(transaction);
+                            Invoke(new Action(() =>
+                              richTextBox1.AppendText("\nsendTransactions=true\n")));
+                            if (transaction.isFeasible())
+                            {
+                                Invoke(new Action(() =>
+                                    richTextBox1.AppendText("\nFEASIBLE TRANSACTION!\n")));
+                                sendTransaction(transaction);
+                            }
+                            else
+                            {
+                                Invoke(new Action(() =>
+                                    richTextBox1.AppendText("\nno feasible transaction\n")));
+                            }
                         }
-                        Invoke(new Action(() =>
-                          richTextBox1.AppendText
-                          (string.Format
-                            ("-\n{0:HH:mm:ss}\nTRANSACTION\n{1}\nELEMENT FIELD (FROM API):\n{2}\n-\n",
-                            DateTime.Now,
-                            transaction.description,
-                            elmField.ToString().Trim()))));
+                        else
+                        {
+                            Invoke(new Action(() =>
+                              richTextBox1.AppendText("\nsendTransactions=false\n")));
+                            Invoke(new Action(() =>
+                              richTextBox1.AppendText
+                              (string.Format
+                                ("-\n{0:HH:mm:ss}\nTRANSACTION\n{1}\nELEMENT FIELD (FROM API):\n{2}\n-\n",
+                                DateTime.Now,
+                                transaction.description,
+                                elmField.ToString().Trim()))));
+                        }
                     }
                 }
             }

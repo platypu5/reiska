@@ -103,7 +103,7 @@ namespace WindowsFormsApplication1
             session.SendRequest(requestSell, new CorrelationID(-2222));
             session.SendRequest(requestBuy, new CorrelationID(-1111));
 
-            return "\n!!! SELLING " + t.amount + " OF " + t.securitySell + " BUYING " + t.securityBuy + "!!!\n";
+            return "\nSUCCESFULLY SENT: " + t.toString();
         }
     }
 }
