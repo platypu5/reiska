@@ -209,7 +209,7 @@ namespace WindowsFormsApplication1
                     foreach (string currency in currencyList1)
                     {
                         if (currency == baseCurrency) { continue; }
-                        string currencyID = currency + "EUR" + " Curncy";
+                        string currencyID = currency + baseCurrency + " Curncy";
                         Invoke(new Action(() =>
                             richTextBox1.AppendText
                             (string.Format("ADDING {0} TO SUBSCRIPTIONS\n",
@@ -219,7 +219,7 @@ namespace WindowsFormsApplication1
                     foreach (string currency in currencyList2)
                     {
                         if (currency == baseCurrency) { continue; }
-                        string currencyID = currency + "EUR" + " Curncy";
+                        string currencyID = currency + baseCurrency + " Curncy";
                         Invoke(new Action(() =>
                             richTextBox1.AppendText
                             (string.Format("ADDING {0} TO SUBSCRIPTIONS\n",
