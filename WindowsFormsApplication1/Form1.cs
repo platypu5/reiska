@@ -23,8 +23,11 @@ namespace WindowsFormsApplication1
         string[] securityList2;
         string[] currencyList1;
         string[] currencyList2;
+        string[] securityScale1;
+        string[] securityScale2;
         string baseCurrency;
         bool sendTransactions;
+        int profitThresholdEur;
         TransactionComputer tc;
         TransactionSender ts;
 
@@ -182,7 +185,7 @@ namespace WindowsFormsApplication1
                     //Conflate the data to show every two seconds.
                     //  Please note that the Bloomberg API Emulator code does not treat this exactly correct: individual subscriptions should each have their own interval setting.
                     //  I have not coded that in the emulator.
-                    List<string> options = new string[] { "interval=2" }.ToList(); //2 seconds.  //Comment this line to receive a subscription data event whenever it happens in the market.
+                    List<string> options = new string[] { "interval=10" }.ToList(); //2 seconds.  //Comment this line to receive a subscription data event whenever it happens in the market.
 
                     //uncomment the following line to see what a request for a nonexistent security looks like
                     //slist.Add(new Subscription("ZYZZ US EQUITY", MarketDataRequest._fields, options));
@@ -298,12 +301,18 @@ namespace WindowsFormsApplication1
         {
             securityList1 = ConfigurationManager.AppSettings["securities1"].Split(',').Select(s => s.Trim()).ToArray();
             securityList2 = ConfigurationManager.AppSettings["securities2"].Split(',').Select(s => s.Trim()).ToArray();
+            securityScale1 = ConfigurationManager.AppSettings["securities1"].Split(',').Select(s => s.Trim()).ToArray();
+            securityScale2 = ConfigurationManager.AppSettings["securities2"].Split(',').Select(s => s.Trim()).ToArray();
             currencyList1 = ConfigurationManager.AppSettings["currencies1"].Split(',').Select(s => s.Trim()).ToArray();
             currencyList2 = ConfigurationManager.AppSettings["currencies2"].Split(',').Select(s => s.Trim()).ToArray();
             baseCurrency = ConfigurationManager.AppSettings["baseCurrency"];
+            profitThresholdEur = Convert.ToInt32(ConfigurationManager.AppSettings["profitThresholdEur"]);
             sendTransactions = Convert.ToBoolean(ConfigurationManager.AppSettings["sendTransaction"]);
             tc = new TransactionComputer
-                (securityList1, securityList2, currencyList1, currencyList2, baseCurrency);
+                (securityList1, securityList2,
+                currencyList1, currencyList2,
+                securityScale1, securityScale2,
+                baseCurrency, profitThresholdEur);
             ts = new TransactionSender();
             SessionOptions sessionOptions = new SessionOptions();
             sessionOptions.ServerHost = "localhost";

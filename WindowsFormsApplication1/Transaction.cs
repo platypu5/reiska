@@ -14,6 +14,7 @@ namespace WindowsFormsApplication1
         public double priceSell;
         public double priceBuy;
         public int amount;
+        public int amount2;
         public double currencyRateSell;
         public double currencyRateBuy;
         public string description;

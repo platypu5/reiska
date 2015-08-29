@@ -16,15 +16,24 @@ namespace WindowsFormsApplication1
         double[] security2AskSize;
         double[] security1BidSize;
         double[] security2BidSize;
+        double[] security1Scale;
+        double[] security2Scale;
         Dictionary<string, int> pos1;
         Dictionary<string, int> pos2;
         Dictionary<string, string> sec1NameToSec2Name;
         Dictionary<string, string> sec2NameToSec1Name;
         Dictionary<string, string> secNameToCurrencyName;
         Dictionary<string, double> currencyNameToBase;
+        int profitThresholdEur;
 
-        public TransactionComputer(string[] sc1, string[] sc2, string[] cur1, string[] cur2, string baseCur)
+
+        public TransactionComputer
+            (string[] sc1, string[] sc2,
+            string[] cur1, string[] cur2,
+            string[] scale1, string[] scale2,
+            string baseCur, int profitThreshold)
         {
+            profitThresholdEur = profitThreshold;
             security1Ask = new double[sc1.Length];
             security1Bid = new double[sc1.Length];
             security2Ask = new double[sc2.Length];
@@ -32,6 +41,8 @@ namespace WindowsFormsApplication1
             security1AskSize = new double[sc1.Length];
             security1BidSize = new double[sc1.Length];
             security2AskSize = new double[sc2.Length];
+            security1Scale = new double[sc1.Length];
+            security2Scale = new double[sc2.Length];
             security2BidSize = new double[sc2.Length];
             pos1 = new Dictionary<string, int>();
             pos2 = new Dictionary<string, int>();
@@ -48,6 +59,11 @@ namespace WindowsFormsApplication1
                 secNameToCurrencyName[sc2[i]] = cur2[i];
             }
             currencyNameToBase[baseCur] = 1.0;
+            for (int i = 0; i < sc1.Length; i++)
+            {
+                security1Scale[i] = Convert.ToDouble(scale1[i]);
+                security2Scale[i] = Convert.ToDouble(scale2[i]);
+            }
             for (int i=0; i<sc1.Length; i++)
             {
                 pos1[sc1[i]] = i;
@@ -200,9 +216,9 @@ namespace WindowsFormsApplication1
                 int amount = 
                     Math.Min((int)security1BidSize[pos], (int)security2AskSize[pos]);
                 double arbitrage = 
-                    security1Bid[pos] * amount -
-                    security2Ask[pos] * amount;
-                if ( arbitrage > 10.0 )
+                    ( security1Bid[pos] / security1Scale[pos] ) * amount -
+                    ( security2Ask[pos] / security2Scale[pos] ) * amount;
+                if ( arbitrage > (double)(profitThresholdEur) )
                 {
                     return new Transaction(
                         true,
@@ -236,9 +252,9 @@ namespace WindowsFormsApplication1
                 int amount =
                     Math.Min((int)security2BidSize[pos], (int)security1AskSize[pos]);
                 double arbitrage =
-                    security2Bid[pos] * amount -
-                    security1Ask[pos] * amount;
-                if ( arbitrage > 10.0)
+                    (security2Bid[pos] / security2Scale[pos]) * amount -
+                    (security1Ask[pos] / security1Scale[pos]) * amount;
+                if ( arbitrage > (double)(profitThresholdEur) )
                 {
                     return new Transaction(
                         true,
