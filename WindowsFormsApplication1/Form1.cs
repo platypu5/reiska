@@ -87,19 +87,19 @@ namespace WindowsFormsApplication1
                                     (security.Substring(0, 3), elmField.GetValueAsFloat64());
                             }
                         }
-                        else if (field.Equals("BEST_ASK1"))
+                        else if (field.Equals("BEST_ASK"))
                         {
                             retval = tc.updateAsk(security, elmField.GetValueAsFloat64());
                         }
-                        else if (field.Equals("BEST_BID1"))
+                        else if (field.Equals("BEST_BID"))
                         {
                             retval = tc.updateBid(security, elmField.GetValueAsFloat64());
                         }
-                        else if (field.Equals("BEST_ASK1_SZ"))
+                        else if (field.Equals("BEST_ASK_SZ"))
                         {
                             retval = tc.updateAskSize(security, elmField.GetValueAsFloat64());
                         }
-                        else if (field.Equals("BEST_BID1_SZ"))
+                        else if (field.Equals("BEST_BID_SZ"))
                         {
                             retval = tc.updateBidSize(security, elmField.GetValueAsFloat64());
                         }
