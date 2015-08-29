@@ -135,7 +135,6 @@ namespace WindowsFormsApplication1
                     {
                     }
                 }
-                session.Stop();
 
                 evt = session.NextEvent(timeoutInMilliSeconds);
 
