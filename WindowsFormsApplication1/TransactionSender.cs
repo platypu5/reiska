@@ -84,20 +84,26 @@ namespace WindowsFormsApplication1
         {
             //Request requestBuy = service.CreateRequest("CreateOrderAndRouteEx");
             Request requestBuy = service.CreateRequest("CreateOrder");
-            requestBuy.Set("EMSX_AMOUNT", t.amountBuy);
+            //requestBuy.Set("EMSX_AMOUNT", t.amountBuy);
+            //requestBuy.Set("EMSX_LIMIT_PRICE", (t.priceBuy).ToString());
+            requestBuy.Set("EMSX_LIMIT_PRICE", "1.0");
+            requestBuy.Set("EMSX_AMOUNT", 1);
             requestBuy.Set("EMSX_BROKER", "NORS"); // BMTB
-            requestBuy.Set("EMSX_HAND_INSTRUCTION", "ANY");
-            requestBuy.Set("EMSX_ORDER_TYPE", "MKT");
+            requestBuy.Set("EMSX_HAND_INSTRUCTION", "DMA");
+            requestBuy.Set("EMSX_ORDER_TYPE", "LMT");
             requestBuy.Set("EMSX_SIDE", "BUY");
             requestBuy.Set("EMSX_TICKER", t.securityBuy);
             requestBuy.Set("EMSX_TIF", "DAY");
 
             //Request requestSell = service.CreateRequest("CreateOrderAndRouteEx");
             Request requestSell = service.CreateRequest("CreateOrder");
-            requestSell.Set("EMSX_AMOUNT", t.amountSell);
+            //requestSell.Set("EMSX_LIMIT_PRICE", (t.priceSell).ToString());
+            requestSell.Set("EMSX_LIMIT_PRICE", "1.0");
+            //requestSell.Set("EMSX_AMOUNT", t.amountSell);
+            requestSell.Set("EMSX_AMOUNT", 1);
             requestSell.Set("EMSX_BROKER", "NORS"); // BMTB
-            requestSell.Set("EMSX_HAND_INSTRUCTION", "ANY");
-            requestSell.Set("EMSX_ORDER_TYPE", "MKT");
+            requestSell.Set("EMSX_HAND_INSTRUCTION", "DMA");
+            requestSell.Set("EMSX_ORDER_TYPE", "LMT");
             requestSell.Set("EMSX_SIDE", "SELL");
             requestSell.Set("EMSX_TICKER", t.securitySell);
             requestSell.Set("EMSX_TIF", "DAY");
