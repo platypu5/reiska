@@ -133,9 +133,9 @@ namespace WindowsFormsApplication1
 
                     if (evt.Type == Event.EventType.RESPONSE && msg.CorrelationID == requestID)
                     {
-                        session.Stop();
                     }
                 }
+                session.Stop();
 
                 evt = session.NextEvent(timeoutInMilliSeconds);
 
