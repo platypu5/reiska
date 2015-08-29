@@ -185,7 +185,7 @@ namespace WindowsFormsApplication1
                     //Conflate the data to show every two seconds.
                     //  Please note that the Bloomberg API Emulator code does not treat this exactly correct: individual subscriptions should each have their own interval setting.
                     //  I have not coded that in the emulator.
-                    List<string> options = new string[] { "interval=60" }.ToList(); //2 seconds.  //Comment this line to receive a subscription data event whenever it happens in the market.
+                    List<string> options = new string[] { "interval=10" }.ToList(); //2 seconds.  //Comment this line to receive a subscription data event whenever it happens in the market.
 
                     //uncomment the following line to see what a request for a nonexistent security looks like
                     //slist.Add(new Subscription("ZYZZ US EQUITY", MarketDataRequest._fields, options));
