@@ -146,7 +146,7 @@ namespace WindowsFormsApplication1
             requestID = new CorrelationID("-2222");
             session.SendRequest(requestSell, requestID);
 
-            return "\nSUCCESFULLY SENT: " + t.toString();
+            return "\nSUCCESFULLY SENT: " + t.toString() + "\n" + retstr;
         }
     }
 }
