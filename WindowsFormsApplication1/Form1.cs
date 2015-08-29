@@ -95,11 +95,11 @@ namespace WindowsFormsApplication1
                         {
                             retval = tc.updateBid(security, elmField.GetValueAsFloat64());
                         }
-                        else if (field.Equals("BEST_ASK_SZ"))
+                        else if (field.Equals("BEST_ASK1_SZ"))
                         {
                             retval = tc.updateAskSize(security, elmField.GetValueAsFloat64());
                         }
-                        else if (field.Equals("BEST_BID_SZ"))
+                        else if (field.Equals("BEST_BID1_SZ"))
                         {
                             retval = tc.updateBidSize(security, elmField.GetValueAsFloat64());
                         }
@@ -156,8 +156,8 @@ namespace WindowsFormsApplication1
             _fields.Add("LAST_PRICE");
             _fields.Add("BEST_BID");
             _fields.Add("BEST_ASK");
-            _fields.Add("BEST_BID_SZ");
-            _fields.Add("BEST_ASK_SZ");
+            _fields.Add("BEST_BID1_SZ");
+            _fields.Add("BEST_ASK1_SZ");
 
             switch (evt.Type)
             {
