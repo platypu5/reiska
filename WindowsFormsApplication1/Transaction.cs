@@ -13,8 +13,8 @@ namespace WindowsFormsApplication1
         public string securityBuy;
         public double priceSell;
         public double priceBuy;
-        public int amount;
-        public int amount2;
+        public int amountBuy;
+        public int amountSell;
         public double currencyRateSell;
         public double currencyRateBuy;
         public string description;
@@ -27,7 +27,8 @@ namespace WindowsFormsApplication1
             securityBuy = sec2;
             priceSell = pr1;
             priceBuy = pr2;
-            amount = amt;
+            amountBuy = amt;
+            amountSell = amt;
             currencyRateSell = rate1;
             currencyRateBuy = rate2;
             description = err;
@@ -38,10 +39,12 @@ namespace WindowsFormsApplication1
             return "\n" +
                 "FEASIBLE: " + feasible.ToString() +
                 " SELLING " + 
-                amount + 
+                amountSell + 
                 " OF " + 
                 securitySell + 
                 " BUYING " + 
+                amountBuy +
+                " OF " +
                 securityBuy + "\n";
         }
 

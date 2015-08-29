@@ -82,8 +82,19 @@ namespace WindowsFormsApplication1
             Transaction t
             )
         {
-            Request requestSell = service.CreateRequest("CreateOrderAndRouteEx");
-            requestSell.Set("EMSX_AMOUNT", t.amount);
+            //Request requestBuy = service.CreateRequest("CreateOrderAndRouteEx");
+            Request requestBuy = service.CreateRequest("CreateOrder");
+            requestBuy.Set("EMSX_AMOUNT", t.amountBuy);
+            requestBuy.Set("EMSX_BROKER", "API");
+            requestBuy.Set("EMSX_HAND_INSTRUCTION", "ANY");
+            requestBuy.Set("EMSX_ORDER_TYPE", "MKT");
+            requestBuy.Set("EMSX_SIDE", "BUY");
+            requestBuy.Set("EMSX_TICKER", t.securityBuy);
+            requestBuy.Set("EMSX_TIF", "DAY");
+
+            //Request requestSell = service.CreateRequest("CreateOrderAndRouteEx");
+            Request requestSell = service.CreateRequest("CreateOrder");
+            requestSell.Set("EMSX_AMOUNT", t.amountSell);
             requestSell.Set("EMSX_BROKER", "API");
             requestSell.Set("EMSX_HAND_INSTRUCTION", "ANY");
             requestSell.Set("EMSX_ORDER_TYPE", "MKT");
@@ -91,17 +102,8 @@ namespace WindowsFormsApplication1
             requestSell.Set("EMSX_TICKER", t.securitySell);
             requestSell.Set("EMSX_TIF", "DAY");
 
-            Request requestBuy = service.CreateRequest("CreateOrderAndRouteEx");
-            requestSell.Set("EMSX_AMOUNT", t.amount);
-            requestSell.Set("EMSX_BROKER", "API");
-            requestSell.Set("EMSX_HAND_INSTRUCTION", "ANY");
-            requestSell.Set("EMSX_ORDER_TYPE", "MKT");
-            requestSell.Set("EMSX_SIDE", "BUY");
-            requestSell.Set("EMSX_TICKER", t.securityBuy);
-            requestSell.Set("EMSX_TIF", "DAY");
-
-            session.SendRequest(requestSell, new CorrelationID(-2222));
             session.SendRequest(requestBuy, new CorrelationID(-1111));
+            session.SendRequest(requestSell, new CorrelationID(-2222));
 
             return "\nSUCCESFULLY SENT: " + t.toString();
         }

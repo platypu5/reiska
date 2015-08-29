@@ -61,8 +61,8 @@ namespace WindowsFormsApplication1
             currencyNameToBase[baseCur] = 1.0;
             for (int i = 0; i < sc1.Length; i++)
             {
-                security1Scale[i] = Convert.ToDouble(scale1[i]);
-                security2Scale[i] = Convert.ToDouble(scale2[i]);
+                security1Scale[i] = 1.0; // FIXME
+                security2Scale[i] = 1.0; // FIXME
             }
             for (int i=0; i<sc1.Length; i++)
             {
@@ -215,9 +215,10 @@ namespace WindowsFormsApplication1
             {
                 int amount = 
                     Math.Min((int)security1BidSize[pos], (int)security2AskSize[pos]);
-                double arbitrage = 
-                    ( security1Bid[pos] / security1Scale[pos] ) * amount -
-                    ( security2Ask[pos] / security2Scale[pos] ) * amount;
+                //double arbitrage = 
+                //    ( security1Bid[pos] / security1Scale[pos] ) * amount -
+                //    ( security2Ask[pos] / security2Scale[pos] ) * amount;
+                double arbitrage = 101.0;
                 if ( arbitrage > (double)(profitThresholdEur) )
                 {
                     return new Transaction(
@@ -251,9 +252,10 @@ namespace WindowsFormsApplication1
             {
                 int amount =
                     Math.Min((int)security2BidSize[pos], (int)security1AskSize[pos]);
-                double arbitrage =
-                    (security2Bid[pos] / security2Scale[pos]) * amount -
-                    (security1Ask[pos] / security1Scale[pos]) * amount;
+                //double arbitrage =
+                //    (security2Bid[pos] / security2Scale[pos]) * amount -
+                //    (security1Ask[pos] / security1Scale[pos]) * amount;
+                double arbitrage = 101.0;
                 if ( arbitrage > (double)(profitThresholdEur) )
                 {
                     return new Transaction(
