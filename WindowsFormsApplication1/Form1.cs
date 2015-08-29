@@ -154,10 +154,10 @@ namespace WindowsFormsApplication1
             List<string> _fields;
             _fields = new List<String>();
             _fields.Add("LAST_PRICE");
-            _fields.Add("BEST_BID1");
-            _fields.Add("BEST_ASK1");
-            _fields.Add("BEST_BID1_SZ");
-            _fields.Add("BEST_ASK1_SZ");
+            _fields.Add("BEST_BID");
+            _fields.Add("BEST_ASK");
+            _fields.Add("BEST_BID_SZ");
+            _fields.Add("BEST_ASK_SZ");
 
             switch (evt.Type)
             {
