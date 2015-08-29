@@ -85,7 +85,7 @@ namespace WindowsFormsApplication1
             //Request requestBuy = service.CreateRequest("CreateOrderAndRouteEx");
             Request requestBuy = service.CreateRequest("CreateOrder");
             requestBuy.Set("EMSX_AMOUNT", t.amountBuy);
-            requestBuy.Set("EMSX_BROKER", "API");
+            requestBuy.Set("EMSX_BROKER", "NORS"); // BMTB
             requestBuy.Set("EMSX_HAND_INSTRUCTION", "ANY");
             requestBuy.Set("EMSX_ORDER_TYPE", "MKT");
             requestBuy.Set("EMSX_SIDE", "BUY");
@@ -95,7 +95,7 @@ namespace WindowsFormsApplication1
             //Request requestSell = service.CreateRequest("CreateOrderAndRouteEx");
             Request requestSell = service.CreateRequest("CreateOrder");
             requestSell.Set("EMSX_AMOUNT", t.amountSell);
-            requestSell.Set("EMSX_BROKER", "API");
+            requestSell.Set("EMSX_BROKER", "NORS"); // BMTB
             requestSell.Set("EMSX_HAND_INSTRUCTION", "ANY");
             requestSell.Set("EMSX_ORDER_TYPE", "MKT");
             requestSell.Set("EMSX_SIDE", "SELL");
