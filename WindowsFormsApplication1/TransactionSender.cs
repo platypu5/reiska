@@ -94,6 +94,11 @@ namespace WindowsFormsApplication1
             requestBuy.Set("EMSX_SIDE", "BUY");
             requestBuy.Set("EMSX_TICKER", t.securityBuy);
             requestBuy.Set("EMSX_TIF", "DAY");
+            requestBuy.Set("EMSX_ACCOUNT", "LAGOTRAD");
+
+
+ 
+
 
             //Request requestSell = service.CreateRequest("CreateOrderAndRouteEx");
             Request requestSell = service.CreateRequest("CreateOrder");
@@ -108,8 +113,38 @@ namespace WindowsFormsApplication1
             requestSell.Set("EMSX_TICKER", t.securitySell);
             requestSell.Set("EMSX_TIF", "DAY");
 
-            session.SendRequest(requestBuy, new CorrelationID(-1111));
-            session.SendRequest(requestSell, new CorrelationID(-2222));
+            CorrelationID requestID = new CorrelationID("-1111");
+            session.SendRequest(requestBuy, requestID);
+
+            int timeoutInMilliSeconds = 5000;
+
+            string retstr = "";
+
+            Event evt = session.NextEvent(timeoutInMilliSeconds);
+            do
+            {
+
+                retstr += "Received Event: " + evt.Type + "\n";
+
+                foreach (Message msg in evt)
+                {
+                    retstr += "MESSAGE: " + msg.ToString() + "\n";
+                    retstr += "CORRELATION ID: " + msg.CorrelationID + "\n";
+
+                    if (evt.Type == Event.EventType.RESPONSE && msg.CorrelationID == requestID)
+                    {
+                        session.Stop();
+                    }
+                }
+
+                evt = session.NextEvent(timeoutInMilliSeconds);
+
+
+            } while (evt.Type != Event.EventType.TIMEOUT);
+
+
+            requestID = new CorrelationID("-2222");
+            session.SendRequest(requestSell, requestID);
 
             return "\nSUCCESFULLY SENT: " + t.toString();
         }
