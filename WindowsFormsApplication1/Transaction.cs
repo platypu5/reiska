@@ -18,9 +18,11 @@ namespace WindowsFormsApplication1
         public double currencyRateSell;
         public double currencyRateBuy;
         public string description;
+        public double arbitrage;
+        public double threshold;
 
         public Transaction(bool feas, string sec1, string sec2, double pr1, double pr2,
-            int amt, double rate1, double rate2, string err)
+            int amt, double rate1, double rate2, double arbi, double thres)
         {
             feasible = feas;
             securitySell = sec1;
@@ -31,21 +33,29 @@ namespace WindowsFormsApplication1
             amountSell = amt;
             currencyRateSell = rate1;
             currencyRateBuy = rate2;
-            description = err;
+            arbitrage = arbi;
+            threshold = thres;
         }
 
         public string toString()
         {
-            return "\n" +
-                "FEASIBLE: " + feasible.ToString() +
-                " SELLING " + 
-                amountSell + 
-                " OF " + 
-                securitySell + 
-                " BUYING " + 
-                amountBuy +
+            return "FEASIBLE: " + feasible.ToString() +
+                " SELLING " +
+                amountSell.ToString() +
                 " OF " +
-                securityBuy + "\n";
+                securitySell +
+                " FOR " +
+                priceSell.ToString() +
+                ", BUYING " +
+                amountBuy.ToString() +
+                " OF " +
+                securityBuy +
+                " FOR " +
+                priceBuy.ToString() +
+                " ARBITRAGE " +
+                arbitrage.ToString() +
+                " THRESHOLD " +
+                threshold.ToString();
         }
 
 

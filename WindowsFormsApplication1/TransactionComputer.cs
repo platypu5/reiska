@@ -70,8 +70,8 @@ namespace WindowsFormsApplication1
                 pos2[sc2[i]] = i;
                 sec1NameToSec2Name[sc1[i]] = sc2[i];
                 sec2NameToSec1Name[sc2[i]] = sc1[i];
-                security1Ask[i] = -1.0; security1Bid[i] = -1.0;
-                security2Ask[i] = -1.0; security2Bid[i] = -1.0;
+                security1Ask[i] = Double.MaxValue / 3.0; security1Bid[i] = -1.0;
+                security2Ask[i] = Double.MaxValue / 3.0; security2Bid[i] = -1.0;
                 security1AskSize[i] = 0.0; security1BidSize[i] = 0.0;
                 security2AskSize[i] = 0.0; security2BidSize[i] = 0.0;
             }
@@ -84,13 +84,16 @@ namespace WindowsFormsApplication1
             if (pos1.TryGetValue(security, out pos))
             {
                 security1AskSize[pos] = ask;
+                Lgr.Log("INFO", "Updated ASK SIZE of " + security + " to " + ask.ToString());
                 return "\nFOUND SECURITY " + security + " - UPDATED ASK SIZE TO " + ask + "\n";
             }
             else if (pos2.TryGetValue(security, out pos))
             {
                 security2AskSize[pos] = ask;
+                Lgr.Log("INFO", "Updated ASK SIZE of " + security + " to " + ask.ToString());
                 return "\nFOUND SECURITY " + security + " - UPDATED ASK SIZE TO " + ask + "\n";
             }
+            Lgr.Log("INFO", "Did not find security " + security + " did not update ASK SIZE");
             return "\nDID NOT FIND SECURITY " + security + " - DID NOT UPDATED ASK SIZE" + "\n";
         }
 
@@ -100,13 +103,16 @@ namespace WindowsFormsApplication1
             if (pos1.TryGetValue(security, out pos))
             {
                 security1BidSize[pos] = bid;
+                Lgr.Log("INFO", "Updated BID SIZE of " + security + " to " + bid.ToString());
                 return "\nFOUND SECURITY " + security + " - UPDATED BID SIZE TO " + bid + "\n";
             }
             else if (pos2.TryGetValue(security, out pos))
             {
                 security2BidSize[pos] = bid;
+                Lgr.Log("INFO", "Updated BID SIZE of " + security + " to " + bid.ToString());
                 return "\nFOUND SECURITY " + security + " - UPDATED BID SIZE TO " + bid + "\n";
             }
+            Lgr.Log("INFO", "Did not find security " + security + " did not update BID SIZE");
             return "\nDID NOT FIND SECURITY " + security + " - DID NOT UPDATED BID SIZE" + "\n";
         }
 
@@ -131,18 +137,22 @@ namespace WindowsFormsApplication1
             double rate = getCurrencyRate(security);
             if (rate < 0)
             {
+                Lgr.Log("INFO", "Unable to find CURNCY RATE for " + security + " did not update ASK PRICE");
                 return "\nUNABLE TO FIND CURRENCY RATE FOR " + security + " - DID NOT UPDATE ASK\n";
             }
             if (pos1.TryGetValue(security, out pos))
             {
                 security1Ask[pos] = ask * rate;
+                Lgr.Log("INFO", "Updated ASK PRICE of " + security + " to " + Math.Round(security1Ask[pos], 2).ToString() + " = " + ask.ToString() + " * (CURNCY rate)" + rate.ToString());
                 return "\nFOUND CURRENCY RATE FOR " + security + " - UPDATED ASK TO " + ask + "*" + rate + "\n";
             }
             else if (pos2.TryGetValue(security, out pos))
             {
                 security2Ask[pos] = ask * rate;
+                Lgr.Log("INFO", "Updated ASK PRICE of " + security + " to " + Math.Round(security2Ask[pos], 2).ToString() + " = " + ask.ToString() + " * (CURNCY rate)" + rate.ToString());
                 return "\nFOUND CURRENCY RATE FOR " + security + " - UPDATED ASK TO " + ask + "*" + rate + "\n";
             }
+            Lgr.Log("INFO", "Did not find security " + security + " did not update ASK PRICE");
             return "\nUNABLE TO FIND SECURITY " + security + " - DID NOT UPDATE ASK";
         }
 
@@ -152,24 +162,29 @@ namespace WindowsFormsApplication1
             double rate = getCurrencyRate(security);
             if (rate < 0)
             {
+                Lgr.Log("INFO", "Unable to find CURNCY RATE for " + security + " did not update BID PRICE");
                 return "\nUNABLE TO FIND CURRENCY RATE FOR " + security + " - DID NOT UPDATE BID\n";
             }
             if (pos1.TryGetValue(security, out pos))
             {
                 security1Bid[pos] = bid * rate;
+                Lgr.Log("INFO", "Updated BID PRICE of " + security + " to " + Math.Round(security1Bid[pos], 2).ToString() + " = " + bid.ToString() + " * (CURNCY rate)" + rate.ToString());
                 return "\nFOUND CURRENCY RATE FOR " + security + " - UPDATED BID TO " + bid + "*" + rate + "\n";
             }
             else if (pos2.TryGetValue(security, out pos))
             {
                 security2Bid[pos] = bid * rate;
+                Lgr.Log("INFO", "Updated BID PRICE of " + security + " to " + Math.Round(security2Bid[pos], 2).ToString() + " = " + bid.ToString() + " * (CURNCY rate)" + rate.ToString());
                 return "\nFOUND CURRENCY RATE FOR " + security + " - UPDATED BID TO " + bid + "*" + rate + "\n";
             }
+            Lgr.Log("INFO", "Did not find security " + security + " did not update BID PRICE");
             return "\nUNABLE TO FIND SECURITY " + security + " - DID NOT UPDATE BID";
         }
 
         public string updateCurrencyRate(string currency, double rate)
         {
             currencyNameToBase[currency] = rate;
+            Lgr.Log("INFO", "Updated rate of currency " + currency + " to " + rate.ToString());
             return "\nUPDATED RATE OF CURRENCY " + currency + " TO " + rate + "\n";
 
         }
@@ -209,16 +224,16 @@ namespace WindowsFormsApplication1
             if (!ratesExist(security))
             {
                 return new Transaction(false, "", "", 0.0, 0.0,
-                    0, 0.0, 0.0, "\nNO CURRENCY RATE FOUND FOR ONE OF THE SECURITIES\n");
+                    0, 0.0, 0.0, 0.0, (double)profitThresholdEur);
             }
             if (pos1.TryGetValue(security, out pos))
             {
                 int amount = 
                     Math.Min((int)security1BidSize[pos], (int)security2AskSize[pos]);
-                //double arbitrage = 
-                //    ( security1Bid[pos] / security1Scale[pos] ) * amount -
-                //    ( security2Ask[pos] / security2Scale[pos] ) * amount;
-                double arbitrage = 101.0;
+                double arbitrage = 
+                    ( security1Bid[pos] / security1Scale[pos] ) * amount -
+                    ( security2Ask[pos] / security2Scale[pos] ) * amount;
+                //double arbitrage = 101.0;
                 if ( arbitrage > (double)(profitThresholdEur) )
                 {
                     return new Transaction(
@@ -230,21 +245,13 @@ namespace WindowsFormsApplication1
                         amount,
                         currencyNameToBase[secNameToCurrencyName[security]],
                         currencyNameToBase[secNameToCurrencyName[sec1NameToSec2Name[security]]],
-                        "FEASIBLE TRANSACTION:\n" +
-                        security +
-                        ", BID: " + security1Bid[pos].ToString() +
-                        ", BIDSIZE: " + security1BidSize[pos].ToString() +
-                        "\n-exceeds threshold by arbitrage- " + arbitrage + "\n" +
-                        sec1NameToSec2Name[security] +
-                        ", ASK: " + security2Ask[pos].ToString() +
-                        ", ASKSIZE: " + security2AskSize[pos].ToString()
+                        arbitrage, (double)profitThresholdEur
                         );
                 }
                 else
                 {
                     return new Transaction(false, "", "", 0.0, 0.0,
-                    0, 0.0, 0.0, "\nNO FEASIBLE TRANSACTION FOR: " +
-                        security + " <-> " + sec1NameToSec2Name[security] + "\n");
+                    0, 0.0, 0.0, 0.0, (double)profitThresholdEur);
                 }
 
             }
@@ -252,10 +259,10 @@ namespace WindowsFormsApplication1
             {
                 int amount =
                     Math.Min((int)security2BidSize[pos], (int)security1AskSize[pos]);
-                //double arbitrage =
-                //    (security2Bid[pos] / security2Scale[pos]) * amount -
-                //    (security1Ask[pos] / security1Scale[pos]) * amount;
-                double arbitrage = 101.0;
+                double arbitrage =
+                    (security2Bid[pos] / security2Scale[pos]) * amount -
+                    (security1Ask[pos] / security1Scale[pos]) * amount;
+                //double arbitrage = 101.0;
                 if ( arbitrage > (double)(profitThresholdEur) )
                 {
                     return new Transaction(
@@ -267,25 +274,17 @@ namespace WindowsFormsApplication1
                         amount,
                         currencyNameToBase[secNameToCurrencyName[security]],
                         currencyNameToBase[secNameToCurrencyName[sec2NameToSec1Name[security]]],
-                        "FEASIBLE TRANSACTION:\n" +
-                        security +
-                        ", BID: " + security2Bid[pos].ToString() +
-                        ", BIDSIZE: " + security2BidSize[pos].ToString() +
-                        "\n-exceeds threshold by arbitrage- " + arbitrage + "\n" +
-                        sec2NameToSec1Name[security] +
-                        ", ASK: " + security1Ask[pos].ToString() +
-                        ", ASKSIZE: " + security1AskSize[pos].ToString()
+                        arbitrage, (double)profitThresholdEur
                         );
                 }
                 else
                 {
                     return new Transaction(false, "", "", 0.0, 0.0,
-                    0, 0.0, 0.0, "\nNO FEASIBLE TRANSACTION FOR: " +
-                        security + " <-> " + sec2NameToSec1Name[security] + "\n");
+                    0, 0.0, 0.0, 0.0, (double)profitThresholdEur);
                 }
             }
             return new Transaction(false, "", "", 0.0, 0.0,
-                    0, 0.0, 0.0, "\nNO TRANSACTION\n");
+                    0, 0.0, 0.0, 0.0, (double)profitThresholdEur);
         }
     }
 }

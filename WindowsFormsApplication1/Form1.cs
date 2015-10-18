@@ -62,13 +62,14 @@ namespace WindowsFormsApplication1
                           richTextBox1.AppendText
                           (string.Format("GOT SECURITY: {0}",
                             security))));
+                string elmFields = "";
                 foreach (var field in fields)
                 {
                     //This ignores the extraneous fields in the response
                     if (message.HasElement(field, excludeNullElements)) //be careful, excludeNullElements is false by default
                     {
                         Element elmField = message[field];
-                        
+                        elmFields += security + ": " + elmField.ToString().Trim() + "; ";
                         string retval = "";
                         if (security.Contains("Curncy"))
                         {
@@ -111,41 +112,53 @@ namespace WindowsFormsApplication1
                         if (security.Contains("Curncy"))
                         {
                             continue;
-                        }
-
-                        Transaction transaction = tc.computeTransaction(security);
-                        if (sendTransactions)
-                        {
-                            Invoke(new Action(() =>
-                              richTextBox1.AppendText("\nsendTransactions=true\n")));
-                            if (transaction.isFeasible())
-                            {
-                                Invoke(new Action(() =>
-                                    richTextBox1.AppendText("\nFEASIBLE TRANSACTION!\n")));
-                                sendTransaction(transaction);
-                            }
-                            else
-                            {
-                                Invoke(new Action(() =>
-                                    richTextBox1.AppendText("\nno feasible transaction\n")));
-                            }
-                        }
-                        else
-                        {
-                            Invoke(new Action(() =>
-                              richTextBox1.AppendText("\nsendTransactions=false\n")));
-                            Invoke(new Action(() =>
-                              richTextBox1.AppendText
-                              (string.Format
-                                ("-\n{0:HH:mm:ss}\nTRANSACTION\n{1}\nELEMENT FIELD (FROM API):\n{2}\n-\n",
-                                DateTime.Now,
-                                transaction.description,
-                                elmField.ToString().Trim()))));
-                        }
+                        } 
                     }
                 }
+                Transaction transaction = tc.computeTransaction(security);
+                handleTransaction(transaction, elmFields);
             }
             Invoke(new Action(() => richTextBox1.AppendText("\n")));
+        }
+
+        private void handleTransaction(Transaction transaction, string elmFields)
+        {
+            Lgr.Log("INFO", "Got element fields " + elmFields + " from API.");
+            if (sendTransactions)
+            {
+                Invoke(new Action(() =>
+                  richTextBox1.AppendText("\nsendTransactions=true\n")));
+                if (transaction.isFeasible())
+                {
+                    Lgr.Log("INFO", "SEND TRANSACTIONS = TRUE, FEASIBLE TRANSACTION!!!");
+                    Lgr.Log("INFO", transaction.toString());
+                    Invoke(new Action(() =>
+                        richTextBox1.AppendText("\nFEASIBLE TRANSACTION!\n")));
+                    sendTransaction(transaction);
+                }
+                else
+                {
+                    Invoke(new Action(() =>
+                        richTextBox1.AppendText("\nno feasible transaction\n")));
+                }
+            }
+            else
+            {
+                if (transaction.isFeasible())
+                {
+                    Lgr.Log("INFO", "SEND TRANSACTIONS = FALSE, FEASIBLE TRANSACTION");
+                    Lgr.Log("INFO", transaction.toString());
+                }
+                Invoke(new Action(() =>
+              richTextBox1.AppendText("\nsendTransactions=false\n")));
+                Invoke(new Action(() =>
+                  richTextBox1.AppendText
+                  (string.Format
+                    ("-\n{0:HH:mm:ss}\nTRANSACTION\n{1}\nELEMENT FIELDS (FROM API):\n{2}\n-\n",
+                    DateTime.Now,
+                    transaction.toString(),
+                    elmFields.Trim()))));
+            }
         }
 
         private void ProcessEvent(Event evt, Session session)
@@ -185,7 +198,7 @@ namespace WindowsFormsApplication1
                     //Conflate the data to show every two seconds.
                     //  Please note that the Bloomberg API Emulator code does not treat this exactly correct: individual subscriptions should each have their own interval setting.
                     //  I have not coded that in the emulator.
-                    List<string> options = new string[] { "interval=10" }.ToList(); //2 seconds.  //Comment this line to receive a subscription data event whenever it happens in the market.
+                    List<string> options = new string[] { "interval=2" }.ToList(); //2 seconds.  //Comment this line to receive a subscription data event whenever it happens in the market.
 
                     //uncomment the following line to see what a request for a nonexistent security looks like
                     //slist.Add(new Subscription("ZYZZ US EQUITY", MarketDataRequest._fields, options));
@@ -299,6 +312,7 @@ namespace WindowsFormsApplication1
 
         private void button1_Click(object sender, EventArgs e)
         {
+            Lgr.Start();
             securityList1 = ConfigurationManager.AppSettings["securities1"].Split(',').Select(s => s.Trim()).ToArray();
             securityList2 = ConfigurationManager.AppSettings["securities2"].Split(',').Select(s => s.Trim()).ToArray();
             securityScale1 = ConfigurationManager.AppSettings["securities1"].Split(',').Select(s => s.Trim()).ToArray();
