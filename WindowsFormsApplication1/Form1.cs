@@ -53,6 +53,11 @@ namespace WindowsFormsApplication1
 
         private void ProcessEvent(Event evt, List<String> fields)
         {
+            string allVals = tc.getAllValues();
+            Invoke(new Action(() =>
+                richTextBox1.AppendText
+                (string.Format("{0}",
+                allVals))));
             Invoke(new Action(() => richTextBox1.AppendText("ProcessEvent(Event, List<String>)\n")));
             const bool excludeNullElements = true;
             foreach (Bloomberglp.Blpapi.Message message in evt.GetMessages())
@@ -163,7 +168,7 @@ namespace WindowsFormsApplication1
 
         private void ProcessEvent(Event evt, Session session)
         {
-            Invoke(new Action(() => richTextBox1.AppendText("ProcessEvent(Event, Session)\n")));
+                Invoke(new Action(() => richTextBox1.AppendText("ProcessEvent(Event, Session)\n")));
             List<string> _fields;
             _fields = new List<String>();
             _fields.Add("LAST_PRICE");
@@ -198,7 +203,7 @@ namespace WindowsFormsApplication1
                     //Conflate the data to show every two seconds.
                     //  Please note that the Bloomberg API Emulator code does not treat this exactly correct: individual subscriptions should each have their own interval setting.
                     //  I have not coded that in the emulator.
-                    List<string> options = new string[] { "interval=2" }.ToList(); //2 seconds.  //Comment this line to receive a subscription data event whenever it happens in the market.
+                    List<string> options = new string[] { "interval=10" }.ToList(); //2 seconds.  //Comment this line to receive a subscription data event whenever it happens in the market.
 
                     //uncomment the following line to see what a request for a nonexistent security looks like
                     //slist.Add(new Subscription("ZYZZ US EQUITY", MarketDataRequest._fields, options));

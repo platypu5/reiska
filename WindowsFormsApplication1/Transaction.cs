@@ -15,6 +15,7 @@ namespace WindowsFormsApplication1
         public double priceBuy;
         public int amountBuy;
         public int amountSell;
+        public int amount;
         public double currencyRateSell;
         public double currencyRateBuy;
         public string description;
@@ -29,8 +30,9 @@ namespace WindowsFormsApplication1
             securityBuy = sec2;
             priceSell = pr1;
             priceBuy = pr2;
-            amountBuy = amt;
+            amount = amt;
             amountSell = amt;
+            amountBuy = amt;
             currencyRateSell = rate1;
             currencyRateBuy = rate2;
             arbitrage = arbi;
@@ -40,22 +42,16 @@ namespace WindowsFormsApplication1
         public string toString()
         {
             return "FEASIBLE: " + feasible.ToString() +
-                " SELLING " +
-                amountSell.ToString() +
-                " OF " +
-                securitySell +
-                " FOR " +
-                priceSell.ToString() +
-                ", BUYING " +
-                amountBuy.ToString() +
-                " OF " +
-                securityBuy +
-                " FOR " +
-                priceBuy.ToString() +
-                " ARBITRAGE " +
-                arbitrage.ToString() +
-                " THRESHOLD " +
-                threshold.ToString();
+                " ________________________________________________________ " +
+                "SELL      : " + securitySell + " BUY     : " + securityBuy +
+                " _____________________________________________________________________ " +
+                " AMT SELL : " + amountSell.ToString() + " AMT BUY: " + amountBuy.ToString() +
+                " _____________________________________________________________________ " +
+                "PRICE SELL: " + priceSell.ToString() + " EUR " + " Rate: " + currencyRateSell.ToString() +
+                " _____________________________________________________________________ " +
+                "PRICE BUY : " + priceBuy.ToString() + " EUR " + " Rate: " + currencyRateBuy.ToString() +
+                " _____________________________________________________________________ " +
+                " ARBITRAGE: " + arbitrage.ToString() + " THRESHOLD " + threshold.ToString();
         }
 
 
