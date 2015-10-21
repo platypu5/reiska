@@ -58,15 +58,29 @@ namespace WindowsFormsApplication1
                 richTextBox1.AppendText
                 (string.Format("{0}",
                 allVals))));
-            Invoke(new Action(() => richTextBox1.AppendText("ProcessEvent(Event, List<String>)\n")));
-            const bool excludeNullElements = true;
+
+            Invoke(new Action(() => richTextBox1.AppendText("\n\nGOT NEW MESSAGE --> ProcessEvent(Event, List<String>)\n")));
+
+
+
+            const bool excludeNullElements = false;
+
             foreach (Bloomberglp.Blpapi.Message message in evt.GetMessages())
             {
+                /*
+                Invoke(new Action(() =>
+                    richTextBox1.AppendText
+                    (string.Format("MESSAGE: {0}",
+                    message.ToString()))));
+                    */
+
                 string security = message.TopicName;
+
                 Invoke(new Action(() =>
                           richTextBox1.AppendText
                           (string.Format("GOT SECURITY: {0}",
                             security))));
+
                 string elmFields = "";
                 foreach (var field in fields)
                 {
@@ -80,7 +94,7 @@ namespace WindowsFormsApplication1
                         {
                             Invoke(new Action(() =>
                                 richTextBox1.AppendText
-                                (string.Format("GOT CURNCY FIELD {0}\n",
+                                (string.Format("\nGOT CURNCY FIELD {0}\n",
                                 field))));
 
                             if (field.Equals("LAST_PRICE"))
@@ -109,10 +123,13 @@ namespace WindowsFormsApplication1
                         {
                             retval = tc.updateBidSize(security, elmField.GetValueAsFloat64());
                         }
-                        Invoke(new Action(() =>
-                            richTextBox1.AppendText
-                            (string.Format("{0}",
-                            retval))));
+                        if (!retval.Equals(""))
+                        {
+                            Invoke(new Action(() =>
+                                richTextBox1.AppendText
+                                (string.Format("\n -> EXECUTED ACTION: {0}",
+                                retval))));
+                        }
 
                         if (security.Contains("Curncy"))
                         {
@@ -120,6 +137,14 @@ namespace WindowsFormsApplication1
                         } 
                     }
                 }
+
+                Invoke(new Action(() =>
+                    richTextBox1.AppendText
+                    (string.Format
+                    ("-\n{0:HH:mm:ss}\nELEMENT FIELDS (FROM API):\n{1}\n-\n",
+                     DateTime.Now,
+                     elmFields.Trim()))));
+
                 Transaction transaction = tc.computeTransaction(security);
                 handleTransaction(transaction, elmFields);
             }
@@ -155,20 +180,13 @@ namespace WindowsFormsApplication1
                     Lgr.Log("INFO", transaction.toString());
                 }
                 Invoke(new Action(() =>
-              richTextBox1.AppendText("\nsendTransactions=false\n")));
-                Invoke(new Action(() =>
-                  richTextBox1.AppendText
-                  (string.Format
-                    ("-\n{0:HH:mm:ss}\nTRANSACTION\n{1}\nELEMENT FIELDS (FROM API):\n{2}\n-\n",
-                    DateTime.Now,
-                    transaction.toString(),
-                    elmFields.Trim()))));
+                    richTextBox1.AppendText("\nsendTransactions=false\n")));
             }
         }
 
         private void ProcessEvent(Event evt, Session session)
         {
-                Invoke(new Action(() => richTextBox1.AppendText("ProcessEvent(Event, Session)\n")));
+            Invoke(new Action(() => richTextBox1.AppendText("\n\nProcessEvent(Event, Session)\n")));
             List<string> _fields;
             _fields = new List<String>();
             _fields.Add("LAST_PRICE");
@@ -203,7 +221,7 @@ namespace WindowsFormsApplication1
                     //Conflate the data to show every two seconds.
                     //  Please note that the Bloomberg API Emulator code does not treat this exactly correct: individual subscriptions should each have their own interval setting.
                     //  I have not coded that in the emulator.
-                    List<string> options = new string[] { "interval=10" }.ToList(); //2 seconds.  //Comment this line to receive a subscription data event whenever it happens in the market.
+                    List<string> options = new string[] { "interval=1" }.ToList(); //2 seconds.  //Comment this line to receive a subscription data event whenever it happens in the market.
 
                     //uncomment the following line to see what a request for a nonexistent security looks like
                     //slist.Add(new Subscription("ZYZZ US EQUITY", MarketDataRequest._fields, options));
