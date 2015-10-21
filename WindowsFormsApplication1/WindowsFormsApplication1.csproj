@@ -36,6 +36,10 @@
     <Reference Include="BEmu_csh">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Robinson664\BEmuInstaller\BEmu_csh.dll</HintPath>
     </Reference>
+    <Reference Include="Bloomberglp.Blpapi, Version=3.8.9.2, Culture=neutral, PublicKeyToken=ec3efa8c033c2bc5, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Bloomberglp.Blpapi.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
