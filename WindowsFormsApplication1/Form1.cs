@@ -184,16 +184,33 @@ namespace WindowsFormsApplication1
             }
         }
 
-        private void ProcessEvent(Event evt, Session session)
+        private void ProcessEventCurr(Event evt, Session session)
+        {
+            ProcessEvent(evt, session, "currency");
+        }
+
+        private void ProcessEventSec(Event evt, Session session)
+        {
+            ProcessEvent(evt, session, "security");
+        }
+
+
+        private void ProcessEvent(Event evt, Session session, string type)
         {
             Invoke(new Action(() => richTextBox1.AppendText("\n\nProcessEvent(Event, Session)\n")));
             List<string> _fields;
             _fields = new List<String>();
-            _fields.Add("LAST_PRICE");
-            _fields.Add("BEST_BID");
-            _fields.Add("BEST_ASK");
-            _fields.Add("BEST_BID1_SZ");
-            _fields.Add("BEST_ASK1_SZ");
+            if (type.Equals("currency"))
+            {
+                _fields.Add("LAST_PRICE");
+            }
+            else
+            {
+                _fields.Add("BEST_BID");
+                _fields.Add("BEST_ASK");
+                _fields.Add("BEST_BID1_SZ");
+                _fields.Add("BEST_ASK1_SZ");
+            }
 
             switch (evt.Type)
             {
@@ -225,45 +242,50 @@ namespace WindowsFormsApplication1
                     //slist.Add(new Subscription("ZYZZ US EQUITY", MarketDataRequest._fields, options));
                     //  My code treats all securities that start with a 'Z' as a nonexistent security
 
-                    foreach (string security in securityList1)
+                    if (type.Equals("security"))
                     {
-                        Invoke(new Action(() =>
-                            richTextBox1.AppendText
-                            (string.Format("ADDING {0} TO SUBSCRIPTIONS\n",
-                            security))));
-                        slist.Add(new Subscription(security, _fields, options));
+                        foreach (string security in securityList1)
+                        {
+                            Invoke(new Action(() =>
+                                richTextBox1.AppendText
+                                (string.Format("ADDING {0} TO SUBSCRIPTIONS\n",
+                                security))));
+                            slist.Add(new Subscription(security, _fields, options));
+                        }
+                        foreach (string security in securityList2)
+                        {
+                            Invoke(new Action(() =>
+                                richTextBox1.AppendText
+                                (string.Format("ADDING {0} TO SUBSCRIPTIONS\n",
+                                security))));
+                            slist.Add(new Subscription(security, _fields, options));
+                        }
+                        Invoke(new Action(() => richTextBox1.AppendText("added securities\n")));
                     }
-                    foreach (string security in securityList2)
+                    else
                     {
-                        Invoke(new Action(() =>
-                            richTextBox1.AppendText
-                            (string.Format("ADDING {0} TO SUBSCRIPTIONS\n",
-                            security))));
-                        slist.Add(new Subscription(security, _fields, options));
+                        foreach (string currency in currencyList1)
+                        {
+                            if (currency == baseCurrency) { continue; }
+                            string currencyID = currency + baseCurrency + " Curncy";
+                            Invoke(new Action(() =>
+                                richTextBox1.AppendText
+                                (string.Format("ADDING {0} TO SUBSCRIPTIONS\n",
+                                currencyID))));
+                            slist.Add(new Subscription(currencyID, _fields, options));
+                        }
+                        foreach (string currency in currencyList2)
+                        {
+                            if (currency == baseCurrency) { continue; }
+                            string currencyID = currency + baseCurrency + " Curncy";
+                            Invoke(new Action(() =>
+                                richTextBox1.AppendText
+                                (string.Format("ADDING {0} TO SUBSCRIPTIONS\n",
+                                currencyID))));
+                            slist.Add(new Subscription(currencyID, _fields, options));
+                        }
+                        Invoke(new Action(() => richTextBox1.AppendText("added currencies\n")));
                     }
-                    Invoke(new Action(() => richTextBox1.AppendText("added securities\n")));
-
-                    foreach (string currency in currencyList1)
-                    {
-                        if (currency == baseCurrency) { continue; }
-                        string currencyID = currency + baseCurrency + " Curncy";
-                        Invoke(new Action(() =>
-                            richTextBox1.AppendText
-                            (string.Format("ADDING {0} TO SUBSCRIPTIONS\n",
-                            currencyID))));
-                        slist.Add(new Subscription(currencyID, _fields, options));
-                    }
-                    foreach (string currency in currencyList2)
-                    {
-                        if (currency == baseCurrency) { continue; }
-                        string currencyID = currency + baseCurrency + " Curncy";
-                        Invoke(new Action(() =>
-                            richTextBox1.AppendText
-                            (string.Format("ADDING {0} TO SUBSCRIPTIONS\n",
-                            currencyID))));
-                        slist.Add(new Subscription(currencyID, _fields, options));
-                    }
-                    Invoke(new Action(() => richTextBox1.AppendText("added currencies\n")));
 
                     //slist.Add(new Subscription("SPY US EQUITY", _fields, options));
                     //slist.Add(new Subscription("AAPL 150117C00600000 EQUITY", _fields, options));
@@ -433,9 +455,11 @@ namespace WindowsFormsApplication1
 
             //pullInitial(sessionOptions);
 
-            Session session = new Session(sessionOptions, new EventHandler(ProcessEvent));
+            Session sessionCurr = new Session(sessionOptions, new EventHandler(ProcessEventCurr));
+            sessionCurr.StartAsync();
 
-            session.StartAsync();
+            Session sessionSec = new Session(sessionOptions, new EventHandler(ProcessEventSec));
+            sessionSec.StartAsync();
 
             //Invoke(new Action(() => richTextBox1.AppendText("moi\n");
             Invoke(new Action(() => richTextBox1.AppendText("end\n")));
