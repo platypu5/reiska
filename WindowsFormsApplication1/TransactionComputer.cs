@@ -135,7 +135,7 @@ namespace WindowsFormsApplication1
         {
             int pos;
             double rate = getCurrencyRate(security);
-            if (rate < 0)
+            if (rate <= 0)
             {
                 Lgr.Log("INFO", "Unable to find CURNCY RATE for " + security + " did not update ASK PRICE");
                 return "\nUNABLE TO FIND CURRENCY RATE FOR " + security + " - DID NOT UPDATE ASK\n";
@@ -160,7 +160,7 @@ namespace WindowsFormsApplication1
         {
             int pos;
             double rate = getCurrencyRate(security);
-            if (rate < 0)
+            if (rate <= 0)
             {
                 Lgr.Log("INFO", "Unable to find CURNCY RATE for " + security + " did not update BID PRICE");
                 return "\nUNABLE TO FIND CURRENCY RATE FOR " + security + " - DID NOT UPDATE BID\n";
