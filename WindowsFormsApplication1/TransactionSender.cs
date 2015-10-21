@@ -82,6 +82,34 @@ namespace WindowsFormsApplication1
             Transaction t
             )
         {
+            double tradeValToday = Lgr.GetTradeValToday();
+            double maxEurPerDay = Convert.ToDouble(ConfigurationManager.AppSettings["maxEurPerDay"]);
+            double maxEurPerTrade = Convert.ToDouble(ConfigurationManager.AppSettings["maxEurPerTrade"]);
+            double sellVal = (t.amountSell * t.priceSell);
+            double buyVal = (t.amountBuy * t.priceBuy);
+
+            if (tradeValToday + (t.amountBuy * t.priceBuy) + (t.amountSell * t.priceSell) > maxEurPerDay)
+            {
+                Lgr.Log("INFO", "Trades value today " + tradeValToday.ToString() +
+                    " + Sell value " + sellVal.ToString() +
+                    " + Buy value " + buyVal.ToString() + 
+                    " > maxEurPerDay " + maxEurPerDay.ToString() +
+                    " NOT SENDING TRANSACTION");
+                return "";
+            }
+            if ((t.amountBuy * t.priceBuy) + (t.amountSell * t.priceSell) > maxEurPerTrade)
+            {
+                Lgr.Log("INFO", "Sell value " + sellVal.ToString() +
+                    " + Buy value " + buyVal.ToString() +
+                    " > maxEurPerTrade " + maxEurPerTrade.ToString() +
+                    " NOT SENDING TRANSACTION");
+                return "";
+            }
+
+            string retstr = "";
+
+            /*
+
             //Request requestBuy = service.CreateRequest("CreateOrderAndRouteEx");
             Request requestBuy = service.CreateRequest("CreateOrder");
             //requestBuy.Set("EMSX_AMOUNT", t.amountBuy);
@@ -114,8 +142,6 @@ namespace WindowsFormsApplication1
 
             int timeoutInMilliSeconds = 5000;
 
-            string retstr = "";
-
             Event evt = session.NextEvent(timeoutInMilliSeconds);
             do
             {
@@ -140,6 +166,15 @@ namespace WindowsFormsApplication1
 
             requestID = new CorrelationID("-2222");
             session.SendRequest(requestSell, requestID);
+
+            */
+
+            Lgr.WriteTrade(sellVal, " ..... SELL: " + t.securitySell +
+                " ..... amount " + t.amountSell + " price " + t.priceSell + " EUR" +
+                " curr rate " + t.currencyRateSell.ToString());
+            Lgr.WriteTrade(buyVal, " ..... BUY: " + t.securityBuy + 
+                " ..... amount " + t.amountBuy + " price " + t.priceBuy + " EUR" +
+                " curr rate " + t.currencyRateBuy.ToString());
 
             return "\nSUCCESFULLY SENT: " + t.toString() + "\n" + retstr;
         }

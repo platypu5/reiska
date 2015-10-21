@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace WindowsFormsApplication1
 {
@@ -28,10 +29,56 @@ namespace WindowsFormsApplication1
                 {
                     WriteLog("DEBUG", "New day starting", w);
                 }
+                using (StreamWriter w = File.CreateText("trades_" + dayOfMonth.ToString() + ".txt"))
+                {
+                    w.WriteLine("");
+                }
+            }
+            if (!File.Exists(dayOfMonth.ToString() + ".txt")) // make sure the file exists and create if not
+            {
+                using (StreamWriter w = File.CreateText(dayOfMonth.ToString() + ".txt"))
+                {
+                    WriteLog("DEBUG", "New day starting", w);
+                }
+            }
+            if (!File.Exists("trades_" + dayOfMonth.ToString() + ".txt")) // make sure the file exists and create if not
+            {
+                using (StreamWriter w = File.CreateText("trades_" + dayOfMonth.ToString() + ".txt"))
+                {
+                    w.WriteLine("");
+                }
             }
             using (StreamWriter w = File.CreateText("start.txt"))
             {
                 WriteDay(dayOfMonth.ToString(), w);
+            }
+        }
+
+        public static double GetTradeValToday()
+        {
+            double val = 0.0;
+            string line;
+            
+            System.IO.StreamReader file =
+               new System.IO.StreamReader("trades_" + dayOfMonth.ToString() + ".txt");
+            while ((line = file.ReadLine()) != null)
+            {
+                String[] elements = Regex.Split(line, ";");
+                if (elements.Length == 3)
+                {
+                    val += Convert.ToDouble(elements[1]);
+                }
+            }
+            file.Close();
+
+            return val;
+        }
+
+        public static void WriteTrade(double value, string trade)
+        {
+            using (StreamWriter w = File.AppendText("trades_" + dayOfMonth.ToString() + ".txt"))
+            {
+                w.WriteLine("{0};{1};{2}", DateTime.Now.ToLongTimeString(), value.ToString(), trade);
             }
         }
 
@@ -61,8 +108,8 @@ namespace WindowsFormsApplication1
             w.Write("\r\nLog Entry : ");
             w.WriteLine("{0} {1} [{2}]", DateTime.Now.ToLongTimeString(),
                 DateTime.Now.ToLongDateString(), level);
-            w.WriteLine("  :");
-            w.WriteLine("  :{0}", logMessage);
+            w.WriteLine("  ");
+            w.WriteLine("  {0}", logMessage);
             w.WriteLine("-------------------------------");
         }
 
