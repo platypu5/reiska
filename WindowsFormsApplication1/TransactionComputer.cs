@@ -178,7 +178,7 @@ namespace WindowsFormsApplication1
             if (rate <= 0)
             {
                 Lgr.Log("INFO", "Unable to find CURNCY RATE for " + security + " did not update ASK PRICE");
-                return "\nUNABLE TO FIND CURRENCY RATE FOR " + security + " - DID NOT UPDATE ASK\n";
+                return "NO CURRENCY";
             }
             if (pos1.TryGetValue(security, out pos))
             {
@@ -193,7 +193,7 @@ namespace WindowsFormsApplication1
                 return "\nFOUND CURRENCY RATE FOR " + security + " - UPDATED ASK TO " + ask + "*" + rate + "\n";
             }
             Lgr.Log("INFO", "Did not find security " + security + " did not update ASK PRICE");
-            return "\nUNABLE TO FIND SECURITY " + security + " - DID NOT UPDATE ASK";
+            return "NO CURRENCY";
         }
 
         public string updateBid(string security, double bid)
@@ -203,7 +203,7 @@ namespace WindowsFormsApplication1
             if (rate <= 0)
             {
                 Lgr.Log("INFO", "Unable to find CURNCY RATE for " + security + " did not update BID PRICE");
-                return "\nUNABLE TO FIND CURRENCY RATE FOR " + security + " - DID NOT UPDATE BID\n";
+                return "NO CURRENCY";
             }
             if (pos1.TryGetValue(security, out pos))
             {
@@ -218,7 +218,7 @@ namespace WindowsFormsApplication1
                 return "\nFOUND CURRENCY RATE FOR " + security + " - UPDATED BID TO " + bid + "*" + rate + "\n";
             }
             Lgr.Log("INFO", "Did not find security " + security + " did not update BID PRICE");
-            return "\nUNABLE TO FIND SECURITY " + security + " - DID NOT UPDATE BID";
+            return "NO CURRENCY";
         }
 
         public string updateCurrencyRate(string currency, double rate)

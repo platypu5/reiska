@@ -30,6 +30,8 @@ namespace WindowsFormsApplication1
         int profitThresholdEur;
         TransactionComputer tc;
         TransactionSender ts;
+        Dictionary<string, double> pendingAsk = new Dictionary<string, double>();
+        Dictionary<string, double> pendingBid = new Dictionary<string, double>();
 
         public Form1()
         {
@@ -51,6 +53,26 @@ namespace WindowsFormsApplication1
                           richTextBox1.AppendText(retval)));
         }
 
+        private void updatePendingAskBid()
+        {
+            foreach (KeyValuePair<string, double> entry in pendingAsk)
+            {
+                string ret = tc.updateAsk(entry.Key, entry.Value);
+                if(!ret.Equals("NO CURRENCY"))
+                {
+                    pendingAsk.Remove(entry.Key);
+                }
+            }
+            foreach (KeyValuePair<string, double> entry in pendingBid)
+            {
+                string ret = tc.updateBid(entry.Key, entry.Value);
+                if (!ret.Equals("NO CURRENCY"))
+                {
+                    pendingBid.Remove(entry.Key);
+                }
+            }
+        }
+
         private void ProcessEvent(Event evt, List<String> fields)
         {
             string allVals = tc.getAllValues();
@@ -60,8 +82,6 @@ namespace WindowsFormsApplication1
                 allVals))));
 
             Invoke(new Action(() => richTextBox1.AppendText("\n\nGOT NEW MESSAGE --> ProcessEvent(Event, List<String>)\n")));
-
-
 
             const bool excludeNullElements = false;
 
@@ -110,10 +130,18 @@ namespace WindowsFormsApplication1
                         else if (field.Equals("BEST_ASK"))
                         {
                             retval = tc.updateAsk(security, elmField.GetValueAsFloat64());
+                            if (retval.Equals("NO CURRENCY"))
+                            {
+                                this.pendingAsk[security] = elmField.GetValueAsFloat64();
+                            }
                         }
                         else if (field.Equals("BEST_BID"))
                         {
                             retval = tc.updateBid(security, elmField.GetValueAsFloat64());
+                            if (retval.Equals("NO CURRENCY"))
+                            {
+                                this.pendingBid[security] = elmField.GetValueAsFloat64();
+                            }
                         }
                         else if (field.Equals("BEST_ASK1_SZ"))
                         {
