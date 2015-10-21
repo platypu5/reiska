@@ -108,8 +108,6 @@ namespace WindowsFormsApplication1
 
             string retstr = "";
 
-            /*
-
             //Request requestBuy = service.CreateRequest("CreateOrderAndRouteEx");
             Request requestBuy = service.CreateRequest("CreateOrder");
             //requestBuy.Set("EMSX_AMOUNT", t.amountBuy);
@@ -163,11 +161,10 @@ namespace WindowsFormsApplication1
 
             } while (evt.Type != Event.EventType.TIMEOUT);
 
+            Lgr.Log("DEBUG", retstr);
 
             requestID = new CorrelationID("-2222");
             session.SendRequest(requestSell, requestID);
-
-            */
 
             Lgr.WriteTrade(sellVal, " ..... SELL: " + t.securitySell +
                 " ..... amount " + t.amountSell + " price " + t.priceSell + " EUR" +
