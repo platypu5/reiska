@@ -431,7 +431,7 @@ namespace WindowsFormsApplication1
             sessionOptions.ServerHost = "localhost";
             sessionOptions.ServerPort = 8194;
 
-            pullInitial(sessionOptions);
+            //pullInitial(sessionOptions);
 
             Session session = new Session(sessionOptions, new EventHandler(ProcessEvent));
 
