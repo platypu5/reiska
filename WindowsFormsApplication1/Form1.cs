@@ -218,10 +218,8 @@ namespace WindowsFormsApplication1
                 case Event.EventType.SERVICE_STATUS: //use this to subscribe to ticker feeds
                     List<Subscription> slist = new List<Subscription>();
 
-                    //Conflate the data to show every two seconds.
-                    //  Please note that the Bloomberg API Emulator code does not treat this exactly correct: individual subscriptions should each have their own interval setting.
-                    //  I have not coded that in the emulator.
-                    List<string> options = new string[] { "interval=1" }.ToList(); //2 seconds.  //Comment this line to receive a subscription data event whenever it happens in the market.
+                    string interval = ConfigurationManager.AppSettings["interval"];
+                    List<string> options = new string[] { "interval=" + interval }.ToList();
 
                     //uncomment the following line to see what a request for a nonexistent security looks like
                     //slist.Add(new Subscription("ZYZZ US EQUITY", MarketDataRequest._fields, options));
@@ -332,6 +330,84 @@ namespace WindowsFormsApplication1
             }
         }
 
+        private void pullInitial(SessionOptions sessionOptions)
+        {
+            Session session = new Session(sessionOptions);
+            if (!session.Start())
+            {
+                Invoke(new Action(() => richTextBox1.AppendText("Could not start session 2.")));
+            }
+            if (!session.OpenService("//blp/refdata"))
+            {
+                Invoke(new Action(() => richTextBox1.AppendText("Could not open service " + "//blp/refdata")));
+            }
+            CorrelationID requestID = new CorrelationID(1);
+
+            Service refDataSvc = session.GetService("//blp/refdata");
+
+            Request request =
+                refDataSvc.CreateRequest("ReferenceDataRequest");
+
+            foreach (string security in securityList1)
+            {
+                request.Append("securities", security);
+            }
+            foreach (string security in securityList2)
+            {
+                request.Append("securities", security);
+            }
+            foreach (string currency in currencyList1)
+            {
+                if (currency == baseCurrency) { continue; }
+                string currencyID = currency + baseCurrency + " Curncy";
+                request.Append("securities", currencyID);
+            }
+            foreach (string currency in currencyList2)
+            {
+                if (currency == baseCurrency) { continue; }
+                string currencyID = currency + baseCurrency + " Curncy";
+                request.Append("securities", currencyID);
+            }
+            Invoke(new Action(() => richTextBox1.AppendText("added securities\n")));
+
+            List<string> _fields;
+            _fields = new List<String>();
+            _fields.Add("LAST_PRICE");
+            _fields.Add("BEST_BID");
+            _fields.Add("BEST_ASK");
+            _fields.Add("BEST_BID1_SZ");
+            _fields.Add("BEST_ASK1_SZ");
+
+            request.Append("fields", "LAST_PRICE");
+            request.Append("fields", "BEST_BID");
+            request.Append("fields", "BEST_ASK");
+            request.Append("fields", "BEST_BID1_SZ");
+            request.Append("fields", "BEST_ASK1_SZ");
+            
+            session.SendRequest(request, requestID);
+
+            bool continueToLoop = true;
+
+            while (continueToLoop)
+            {
+                Bloomberglp.Blpapi.Event evt = session.NextEvent();
+
+                switch (evt.Type)
+                {
+                    case Event.EventType.PARTIAL_RESPONSE:
+                        Invoke(new Action(() => richTextBox1.AppendText("partial response\n")));
+                        ProcessEvent(evt, _fields);
+                        break;
+                    case Event.EventType.RESPONSE: // final event
+                        Invoke(new Action(() => richTextBox1.AppendText("final response\n")));
+                        continueToLoop = false; // fall through
+                        break;
+                }
+            }
+            Invoke(new Action(() => richTextBox1.AppendText("-------------- FINISHED INITIAL PULL -------------")));
+            Invoke(new Action(() => richTextBox1.AppendText("-------------- FINISHED INITIAL PULL -------------")));
+            Invoke(new Action(() => richTextBox1.AppendText("-------------- FINISHED INITIAL PULL -------------")));
+        }
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -353,8 +429,12 @@ namespace WindowsFormsApplication1
             ts = new TransactionSender();
             SessionOptions sessionOptions = new SessionOptions();
             sessionOptions.ServerHost = "localhost";
-            sessionOptions.ServerPort = 8194; 
+            sessionOptions.ServerPort = 8194;
+
+            pullInitial(sessionOptions);
+
             Session session = new Session(sessionOptions, new EventHandler(ProcessEvent));
+
             session.StartAsync();
 
             //Invoke(new Action(() => richTextBox1.AppendText("moi\n");
