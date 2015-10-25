@@ -137,6 +137,8 @@ namespace WindowsFormsApplication1
             requestSell.Set("EMSX_TIF", "DAY");
             requestSell.Set("EMSX_ACCOUNT", "LAGOTRAD");
 
+            //Request requestInfo = service.CreateRequest("OrderInfo");
+            //use this to get buy order info and if order status == FILLED -> sell
             CorrelationID requestID = new CorrelationID("-1111");
             session.SendRequest(requestBuy, requestID);
 
