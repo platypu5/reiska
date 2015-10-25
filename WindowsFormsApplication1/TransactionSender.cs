@@ -135,6 +135,7 @@ namespace WindowsFormsApplication1
             requestSell.Set("EMSX_SIDE", "SELL");
             requestSell.Set("EMSX_TICKER", t.securitySell);
             requestSell.Set("EMSX_TIF", "DAY");
+            requestSell.Set("EMSX_ACCOUNT", "LAGOTRAD");
 
             CorrelationID requestID = new CorrelationID("-1111");
             session.SendRequest(requestBuy, requestID);
