@@ -136,11 +136,15 @@ namespace WindowsFormsApplication1
             requestSell.Set("EMSX_TICKER", t.securitySell);
             requestSell.Set("EMSX_TIF", "DAY");
             requestSell.Set("EMSX_ACCOUNT", "LAGOTRAD");
-
-            //Request requestInfo = service.CreateRequest("OrderInfo");
-            //use this to get buy order info and if order status == FILLED -> sell
+            
             CorrelationID requestID = new CorrelationID("-1111");
             session.SendRequest(requestBuy, requestID);
+            
+            //Request requestInfo = service.CreateRequest("OrderInfo");
+            //requestInfo.Set("EMSX_SEQUENCE", requestBuy.EMSX_SEQUENCE);
+            //CorrelationID infoID = new CorrelationID("-3333");
+            //session.SendRequest(requestInfo, infoID);
+            //use this to get buy order info and if order status == FILLED -> sell
 
             int timeoutInMilliSeconds = 5000;
 
