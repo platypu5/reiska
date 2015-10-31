@@ -27,6 +27,9 @@ namespace WindowsFormsApplication1
         private static readonly Name ERROR_INFO = new Name("ErrorInfo");
         private static readonly Name CREATE_ORDER_AND_ROUTE_EX = new Name("CreateOrderAndRouteEx");
 
+        Dictionary<int, Request> unfilledOrders = new Dictionary<int, Request>();
+        Random rnd = new Random();
+
         private string d_service;
         private string d_host;
         private int d_port;
@@ -78,6 +81,128 @@ namespace WindowsFormsApplication1
             return retval;
         }
 
+        private int checkOneFill(int key, Request value)
+        {
+            Request request = service.CreateRequest("OrderInfo");
+            request.Set("EMSX_SEQUENCE", key);
+
+            CorrelationID requestID = new CorrelationID(1);
+
+            session.SendRequest(request, requestID);
+
+            int timeoutInMilliSeconds = 5000;
+
+            Event evt = session.NextEvent(timeoutInMilliSeconds);
+            do
+            {
+                System.Console.WriteLine("Received Event: " + evt.Type);
+
+                foreach (Bloomberglp.Blpapi.Message msg in evt.GetMessages())
+                {
+                    System.Console.WriteLine(msg.ToString());
+
+                    if (evt.Type == Event.EventType.RESPONSE && msg.CorrelationID == requestID)
+                    {
+
+                        System.Console.WriteLine("Message Type: " + msg.MessageType);
+                        if (msg.MessageType.Equals(ERROR_INFO))
+                        {
+                            int errorCode = msg.GetElementAsInt32("ERROR_CODE");
+                            string errorMessage = msg.GetElementAsString("ERROR_MESSAGE");
+                            System.Console.WriteLine("ERROR CODE: " + errorCode + "\tERROR MESSAGE: " + errorMessage);
+                        }
+                        else if (msg.MessageType.Equals("ORDER_INFO"))
+                        {
+                            int emsx_amount = msg.GetElementAsInt32("EMSX_AMOUNT");
+                            double emsx_avg_price = msg.GetElementAsFloat64("EMSX_AVG_PRICE");
+                            string emsx_basket_name = msg.GetElementAsString("EMSX_BASKET_NAME");
+                            string emsx_broker = msg.GetElementAsString("EMSX_BROKER");
+                            string emsx_exchange = msg.GetElementAsString("EMSX_EXCHANGE");
+                            int emsx_filled = msg.GetElementAsInt32("EMSX_FILLED");
+                            int emsx_flag = msg.GetElementAsInt32("EMSX_FLAG");
+                            int emsx_idle_amount = msg.GetElementAsInt32("EMSX_IDLE_AMOUNT");
+                            double emsx_limit_price = msg.GetElementAsFloat64("EMSX_LIMIT_PRICE");
+                            string emsx_notes = msg.GetElementAsString("EMSX_NOTES");
+                            string emsx_order_create_date = msg.GetElementAsString("EMSX_ORDER_CREATE_DATE");
+                            string emsx_order_create_time = msg.GetElementAsString("EMSX_ORDER_CREATE_TIME");
+                            string emsx_order_type = msg.GetElementAsString("EMSX_ORDER_TYPE");
+                            string emsx_port_mgr = msg.GetElementAsString("EMSX_PORT_MGR");
+                            string emsx_position = msg.GetElementAsString("EMSX_POSITION");
+                            string emsx_side = msg.GetElementAsString("EMSX_SIDE");
+                            string emsx_step_out_broker = msg.GetElementAsString("EMSX_STEP_OUT_BROKER");
+                            int emsx_sub_flag = msg.GetElementAsInt32("EMSX_SUB_FLAG");
+                            string emsx_ticker = msg.GetElementAsString("EMSX_TICKER");
+                            string emsx_tif = msg.GetElementAsString("EMSX_TIF");
+                            string emsx_trader = msg.GetElementAsString("EMSX_TRADER");
+                            long emsx_trader_uuid = msg.GetElementAsInt64("EMSX_TRADER_UUID");
+                            long emsx_ts_ordnum = msg.GetElementAsInt64("EMSX_TS_ORDNUM");
+                            int emsx_working = msg.GetElementAsInt32("EMSX_WORKING");
+                            string emsx_yellow_key = msg.GetElementAsString("EMSX_YELLOW_KEY");
+
+                            System.Console.WriteLine("EMSX_AMOUNT: " + emsx_amount);
+                            System.Console.WriteLine("EMSX_AVG_PRICE: " + emsx_avg_price);
+                            System.Console.WriteLine("EMSX_BASKET_NAME: " + emsx_basket_name);
+                            System.Console.WriteLine("EMSX_BROKER: " + emsx_broker);
+                            System.Console.WriteLine("EMSX_EXCHANGE: " + emsx_exchange);
+                            System.Console.WriteLine("EMSX_FILLED: " + emsx_filled);
+                            System.Console.WriteLine("EMSX_FLAG: " + emsx_flag);
+                            System.Console.WriteLine("EMSX_IDLE_AMOUNT: " + emsx_idle_amount);
+                            System.Console.WriteLine("EMSX_LIMIT_PRICE: " + emsx_limit_price);
+                            System.Console.WriteLine("EMSX_NOTES: " + emsx_notes);
+                            System.Console.WriteLine("EMSX_ORDER_CREATE_DATE: " + emsx_order_create_date);
+                            System.Console.WriteLine("EMSX_ORDER_CREATE_TIME: " + emsx_order_create_time);
+                            System.Console.WriteLine("EMSX_ORDER_TYPE: " + emsx_order_type);
+                            System.Console.WriteLine("EMSX_PORT_MGR: " + emsx_port_mgr);
+                            System.Console.WriteLine("EMSX_POSITION: " + emsx_position);
+                            System.Console.WriteLine("EMSX_SIDE: " + emsx_side);
+                            System.Console.WriteLine("EMSX_STEP_OUT_BROKER: " + emsx_step_out_broker);
+                            System.Console.WriteLine("EMSX_SUB_FLAG: " + emsx_sub_flag);
+                            System.Console.WriteLine("EMSX_TICKER: " + emsx_ticker);
+                            System.Console.WriteLine("EMSX_TIF: " + emsx_tif);
+                            System.Console.WriteLine("EMSX_TRADER: " + emsx_trader);
+                            System.Console.WriteLine("EMSX_TRADER_UUID: " + emsx_trader_uuid);
+                            System.Console.WriteLine("EMSX_TS_ORDNUM: " + emsx_ts_ordnum);
+                            System.Console.WriteLine("EMSX_WORKING: " + emsx_working);
+                            System.Console.WriteLine("EMSX_YELLOW_KEY: " + emsx_yellow_key);
+
+                            return emsx_amount - emsx_filled; // FIXME: No idea how we should deal with partial fill
+                        }
+                        
+                    }
+                }
+
+                evt = session.NextEvent(timeoutInMilliSeconds);
+
+            }
+            while (evt.Type != Event.EventType.TIMEOUT);
+
+            return 1;
+        }
+            
+
+        public void checkFill()
+        {
+            foreach (KeyValuePair<int, Request> entry in unfilledOrders)
+            {
+                checkOneFill(entry.Key, entry.Value);
+                int unfilled = checkOneFill(entry.Key, entry.Value);
+                if (unfilled == 0)
+                {
+                    Lgr.WriteFilledTrade(entry.Value);
+                    unfilledOrders.Remove(entry.Key);
+                }
+            }
+        }
+
+        private int GetTimestamp(DateTime value)
+        {
+            string now = DateTime.Now.ToString("HHmmss");
+            now = "1" + now;
+            now += Convert.ToString(rnd.Next(10));
+            now += Convert.ToString(rnd.Next(10));
+            return Convert.ToInt32(now);
+        }
+
         public string sendTransaction(
             Transaction t
             )
@@ -123,6 +248,10 @@ namespace WindowsFormsApplication1
             requestBuy.Set("EMSX_TIF", "DAY");
             requestBuy.Set("EMSX_ACCOUNT", "LAGOTRAD");
 
+            int buyStamp = GetTimestamp(DateTime.Now);
+            requestBuy.Set("EMSX_SEQUENCE", buyStamp);
+            this.unfilledOrders[buyStamp] = requestBuy;
+
             //Request requestSell = service.CreateRequest("CreateOrderAndRouteEx");
             Request requestSell = service.CreateRequest("CreateOrder");
             //requestSell.Set("EMSX_LIMIT_PRICE", (t.priceSell).ToString());
@@ -136,10 +265,15 @@ namespace WindowsFormsApplication1
             requestSell.Set("EMSX_TICKER", t.securitySell);
             requestSell.Set("EMSX_TIF", "DAY");
             requestSell.Set("EMSX_ACCOUNT", "LAGOTRAD");
-            
+
+            int sellStamp = GetTimestamp(DateTime.Now);
+            requestSell.Set("EMSX_SEQUENCE", sellStamp);
+            this.unfilledOrders[sellStamp] = requestSell;
+
             CorrelationID requestID = new CorrelationID("-1111");
             session.SendRequest(requestBuy, requestID);
-            
+           
+
             //Request requestInfo = service.CreateRequest("OrderInfo");
             //requestInfo.Set("EMSX_SEQUENCE", requestBuy.EMSX_SEQUENCE);
             //CorrelationID infoID = new CorrelationID("-3333");

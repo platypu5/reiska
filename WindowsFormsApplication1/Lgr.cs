@@ -6,6 +6,17 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Text.RegularExpressions;
 
+using Name = Bloomberglp.Blpapi.Name;
+using SessionOptions = Bloomberglp.Blpapi.SessionOptions;
+using Session = Bloomberglp.Blpapi.Session;
+using Service = Bloomberglp.Blpapi.Service;
+using Request = Bloomberglp.Blpapi.Request;
+using Element = Bloomberglp.Blpapi.Element;
+using CorrelationID = Bloomberglp.Blpapi.CorrelationID;
+using Event = Bloomberglp.Blpapi.Event;
+using Message = Bloomberglp.Blpapi.Message;
+using EventHandler = Bloomberglp.Blpapi.EventHandler;
+
 namespace WindowsFormsApplication1
 {
     class Lgr
@@ -33,6 +44,10 @@ namespace WindowsFormsApplication1
                 {
                     w.WriteLine("");
                 }
+                using (StreamWriter w = File.CreateText("filled_trades_" + dayOfMonth.ToString() + ".txt"))
+                {
+                    w.WriteLine("");
+                }
             }
             if (!File.Exists(dayOfMonth.ToString() + ".txt")) // make sure the file exists and create if not
             {
@@ -44,6 +59,13 @@ namespace WindowsFormsApplication1
             if (!File.Exists("trades_" + dayOfMonth.ToString() + ".txt")) // make sure the file exists and create if not
             {
                 using (StreamWriter w = File.CreateText("trades_" + dayOfMonth.ToString() + ".txt"))
+                {
+                    w.WriteLine("");
+                }
+            }
+            if (!File.Exists("filled_trades_" + dayOfMonth.ToString() + ".txt")) // make sure the file exists and create if not
+            {
+                using (StreamWriter w = File.CreateText("filled_trades_" + dayOfMonth.ToString() + ".txt"))
                 {
                     w.WriteLine("");
                 }
@@ -79,6 +101,14 @@ namespace WindowsFormsApplication1
             using (StreamWriter w = File.AppendText("trades_" + dayOfMonth.ToString() + ".txt"))
             {
                 w.WriteLine("{0};{1};{2}", DateTime.Now.ToLongTimeString(), value.ToString(), trade);
+            }
+        }
+
+        public static void WriteFilledTrade(Request req)
+        {
+            using (StreamWriter w = File.AppendText("filled_trades_" + dayOfMonth.ToString() + ".txt"))
+            {
+                w.WriteLine("{0}\n{1}\n\n", DateTime.Now.ToLongTimeString(), req.ToString());
             }
         }
 

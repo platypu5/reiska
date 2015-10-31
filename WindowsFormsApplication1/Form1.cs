@@ -38,6 +38,21 @@ namespace WindowsFormsApplication1
             InitializeComponent();
         }
 
+        private void checkFill()
+        {
+            string retval = ts.startSession();
+            Invoke(new Action(() =>
+                          richTextBox1.AppendText(retval)));
+
+            retval = ts.checkFill();
+            Invoke(new Action(() =>
+              richTextBox1.AppendText(retval)));
+
+            retval = ts.stopSession();
+            Invoke(new Action(() =>
+                          richTextBox1.AppendText(retval)));
+        }
+
         private void sendTransaction(Transaction t)
         {
             string retval = ts.startSession();
