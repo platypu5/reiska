@@ -28,6 +28,8 @@ namespace WindowsFormsApplication1
         private static readonly Name CREATE_ORDER_AND_ROUTE_EX = new Name("CreateOrderAndRouteEx");
 
         Dictionary<int, Request> unfilledOrders = new Dictionary<int, Request>();
+        Dictionary<int, Transaction> unfilledTransactions = new Dictionary<int, Transaction>();
+
         Random rnd = new Random();
 
         private string d_service;
@@ -81,7 +83,7 @@ namespace WindowsFormsApplication1
             return retval;
         }
 
-        private int checkOneFill(int key, Request value)
+        private int checkOneFill(int key)
         {
             Request request = service.CreateRequest("OrderInfo");
             request.Set("EMSX_SEQUENCE", key);
@@ -180,18 +182,29 @@ namespace WindowsFormsApplication1
         }
             
 
-        public void checkFill()
+        public string checkFill()
         {
+            string ret = "NO (UN)FILLED TRANSACTIONS PENDING";
             foreach (KeyValuePair<int, Request> entry in unfilledOrders)
             {
-                checkOneFill(entry.Key, entry.Value);
-                int unfilled = checkOneFill(entry.Key, entry.Value);
+                int unfilled = checkOneFill(entry.Key);
                 if (unfilled == 0)
                 {
+                    ret += "FILLED! -> " + entry.Value.ToString() + " ... ";
                     Lgr.WriteFilledTrade(entry.Value);
+                    if ("BUY".Equals(((entry.Value).GetElement("EMSX_SIDE")).ToString()))
+                    {
+                        sendSellTransaction(this.unfilledTransactions[entry.Key]);
+                    }
+                    unfilledTransactions.Remove(entry.Key);
                     unfilledOrders.Remove(entry.Key);
                 }
+                else
+                {
+                    ret += " UNFILLED -> " + entry.Value.ToString() + " ... ";
+                }
             }
+            return ret;
         }
 
         private int GetTimestamp(DateTime value)
@@ -203,15 +216,48 @@ namespace WindowsFormsApplication1
             return Convert.ToInt32(now);
         }
 
-        public string sendTransaction(
+        private void sendSellTransaction(
+            Transaction t
+            )
+        {
+            double sellVal = (t.amountSell * t.priceSell);
+
+            Request requestSell = service.CreateRequest("CreateOrderAndRouteEx");
+            //Request requestSell = service.CreateRequest("CreateOrder");
+            requestSell.Set("EMSX_LIMIT_PRICE", (t.priceSell).ToString());
+            //requestSell.Set("EMSX_LIMIT_PRICE", 1.0);
+            //requestSell.Set("EMSX_AMOUNT", t.amountSell);
+            requestSell.Set("EMSX_AMOUNT", 1);
+            requestSell.Set("EMSX_BROKER", "NORS"); // BMTB
+            requestSell.Set("EMSX_HAND_INSTRUCTION", "DMA");
+            requestSell.Set("EMSX_ORDER_TYPE", "LMT");
+            requestSell.Set("EMSX_SIDE", "SELL");
+            requestSell.Set("EMSX_TICKER", t.securitySell);
+            requestSell.Set("EMSX_TIF", "DAY");
+            requestSell.Set("EMSX_ACCOUNT", "LAGOTRAD");
+
+            int sellStamp = GetTimestamp(DateTime.Now);
+            requestSell.Set("EMSX_SEQUENCE", sellStamp);
+            this.unfilledOrders[sellStamp] = requestSell;
+            this.unfilledTransactions[sellStamp] = t;
+
+            CorrelationID requestID = new CorrelationID("-2222");
+            session.SendRequest(requestSell, requestID);
+
+            Lgr.WriteTrade(sellVal, " ..... SELL: " + t.securitySell +
+                " ..... amount " + t.amountSell + " price " + t.priceSell + " EUR" +
+                " curr rate " + t.currencyRateSell.ToString());
+        }
+
+        public string sendBuyTransaction(
             Transaction t
             )
         {
             double tradeValToday = Lgr.GetTradeValToday();
             double maxEurPerDay = Convert.ToDouble(ConfigurationManager.AppSettings["maxEurPerDay"]);
             double maxEurPerTrade = Convert.ToDouble(ConfigurationManager.AppSettings["maxEurPerTrade"]);
-            double sellVal = (t.amountSell * t.priceSell);
             double buyVal = (t.amountBuy * t.priceBuy);
+            double sellVal = (t.amountSell * t.priceSell);
 
             if (tradeValToday + (t.amountBuy * t.priceBuy) + (t.amountSell * t.priceSell) > maxEurPerDay)
             {
@@ -235,11 +281,11 @@ namespace WindowsFormsApplication1
 
             //Request requestBuy = service.CreateRequest("CreateOrderAndRouteEx");
             Request requestBuy = service.CreateRequest("CreateOrder");
-            //requestBuy.Set("EMSX_AMOUNT", t.amountBuy);
+            requestBuy.Set("EMSX_AMOUNT", t.amountBuy);
             //double price = t.priceBuy * t.currencyRateBuy;
-            //requestBuy.Set("EMSX_LIMIT_PRICE", (t.priceBuy).ToString());
-            requestBuy.Set("EMSX_LIMIT_PRICE", 1.0);
-            requestBuy.Set("EMSX_AMOUNT", 1);
+            requestBuy.Set("EMSX_LIMIT_PRICE", (t.priceBuy).ToString());
+            //requestBuy.Set("EMSX_LIMIT_PRICE", 1.0);
+            //requestBuy.Set("EMSX_AMOUNT", 1);
             requestBuy.Set("EMSX_BROKER", "NORS"); // BMTB
             requestBuy.Set("EMSX_HAND_INSTRUCTION", "DMA");
             requestBuy.Set("EMSX_ORDER_TYPE", "LMT");
@@ -252,28 +298,9 @@ namespace WindowsFormsApplication1
             requestBuy.Set("EMSX_SEQUENCE", buyStamp);
             this.unfilledOrders[buyStamp] = requestBuy;
 
-            //Request requestSell = service.CreateRequest("CreateOrderAndRouteEx");
-            Request requestSell = service.CreateRequest("CreateOrder");
-            //requestSell.Set("EMSX_LIMIT_PRICE", (t.priceSell).ToString());
-            requestSell.Set("EMSX_LIMIT_PRICE", 1.0);
-            //requestSell.Set("EMSX_AMOUNT", t.amountSell);
-            requestSell.Set("EMSX_AMOUNT", 1);
-            requestSell.Set("EMSX_BROKER", "NORS"); // BMTB
-            requestSell.Set("EMSX_HAND_INSTRUCTION", "DMA");
-            requestSell.Set("EMSX_ORDER_TYPE", "LMT");
-            requestSell.Set("EMSX_SIDE", "SELL");
-            requestSell.Set("EMSX_TICKER", t.securitySell);
-            requestSell.Set("EMSX_TIF", "DAY");
-            requestSell.Set("EMSX_ACCOUNT", "LAGOTRAD");
-
-            int sellStamp = GetTimestamp(DateTime.Now);
-            requestSell.Set("EMSX_SEQUENCE", sellStamp);
-            this.unfilledOrders[sellStamp] = requestSell;
-
             CorrelationID requestID = new CorrelationID("-1111");
             session.SendRequest(requestBuy, requestID);
            
-
             //Request requestInfo = service.CreateRequest("OrderInfo");
             //requestInfo.Set("EMSX_SEQUENCE", requestBuy.EMSX_SEQUENCE);
             //CorrelationID infoID = new CorrelationID("-3333");
@@ -285,32 +312,19 @@ namespace WindowsFormsApplication1
             Event evt = session.NextEvent(timeoutInMilliSeconds);
             do
             {
-
                 retstr += "Received Event: " + evt.Type + "\n";
-
                 foreach (Message msg in evt)
                 {
                     retstr += "MESSAGE: " + msg.ToString() + "\n";
                     retstr += "CORRELATION ID: " + msg.CorrelationID + "\n";
-
                     if (evt.Type == Event.EventType.RESPONSE && msg.CorrelationID == requestID)
                     {
                     }
                 }
-
                 evt = session.NextEvent(timeoutInMilliSeconds);
-
-
             } while (evt.Type != Event.EventType.TIMEOUT);
-
             Lgr.Log("DEBUG", retstr);
 
-            requestID = new CorrelationID("-2222");
-            session.SendRequest(requestSell, requestID);
-
-            Lgr.WriteTrade(sellVal, " ..... SELL: " + t.securitySell +
-                " ..... amount " + t.amountSell + " price " + t.priceSell + " EUR" +
-                " curr rate " + t.currencyRateSell.ToString());
             Lgr.WriteTrade(buyVal, " ..... BUY: " + t.securityBuy + 
                 " ..... amount " + t.amountBuy + " price " + t.priceBuy + " EUR" +
                 " curr rate " + t.currencyRateBuy.ToString());

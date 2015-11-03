@@ -59,7 +59,7 @@ namespace WindowsFormsApplication1
             Invoke(new Action(() =>
                           richTextBox1.AppendText(retval)));
 
-            retval = ts.sendTransaction(t);
+            retval = ts.sendBuyTransaction(t);
             Invoke(new Action(() =>
               richTextBox1.AppendText(retval)));
 
