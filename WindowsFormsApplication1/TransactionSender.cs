@@ -22,6 +22,12 @@ using EventHandler = Bloomberglp.Blpapi.EventHandler;
 
 namespace WindowsFormsApplication1
 {
+    struct Result
+    {
+        public string retval;
+        public bool success;
+    }
+
     class TransactionSender
     {
         private static readonly Name ERROR_INFO = new Name("ErrorInfo");
@@ -49,9 +55,10 @@ namespace WindowsFormsApplication1
             d_port = 8194;
         }
 
-        public string startSession()
+        public Result startSession()
         {
             string retval = "";
+            bool succ = true;
             retval += "\nStarting session...\n";
             SessionOptions d_sessionOptions = new SessionOptions();
             d_sessionOptions.ServerHost = d_host;
@@ -60,18 +67,29 @@ namespace WindowsFormsApplication1
             if (!session.Start())
             {
                 retval += "\nError: failed to start session.\n";
-                return retval;
+                succ = false;
             }
-            retval += "\nSession started!\n";
-            if (!session.OpenService(d_service))
+            else
             {
-                session.Stop();
-                retval += "\nError: failed to open service.\n";
-                return retval;
+                retval += "\nSession started!\n";
+                if (!session.OpenService(d_service))
+                {
+                    session.Stop();
+                    retval += "\nError: failed to open service.\n";
+                    succ = false;
+                }
+                else
+                {
+                    service = session.GetService(d_service);
+                    retval += "\nService opened!\n";
+                }
             }
-            service = session.GetService(d_service);
-            retval += "\nService opened!\n";
-            return retval;
+            Result result = new Result
+            {
+                retval = retval, success = succ
+            };
+            return result;
+
         }
 
         public string stopSession()
