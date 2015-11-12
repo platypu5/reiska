@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.ComponentModel;
+using System.IO;
 using System.Data;
 using System.Drawing;
 using System.Linq;
@@ -8,6 +10,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Configuration;
+
+using CsvHelper;
+using CsvHelper.Configuration;
 
 using Bloomberglp.Blpapi;
 
@@ -32,6 +37,9 @@ namespace WindowsFormsApplication1
         TransactionSender ts;
         Dictionary<string, double> pendingAsk = new Dictionary<string, double>();
         Dictionary<string, double> pendingBid = new Dictionary<string, double>();
+        private Session sessionSec;
+        private Session sessionCurr;
+        private bool running;
 
         public Form1()
         {
@@ -40,7 +48,14 @@ namespace WindowsFormsApplication1
 
         private void checkFill()
         {
-            string retval = ts.startSession();
+            Result result = ts.startSession();
+            bool succ = result.success;
+            string retval = result.retval;
+            if(!succ)
+            {
+                Lgr.Log("ERROR", retval);
+                return;
+            }
             Invoke(new Action(() =>
                           richTextBox1.AppendText(retval)));
 
@@ -55,7 +70,15 @@ namespace WindowsFormsApplication1
 
         private void sendTransaction(Transaction t)
         {
-            string retval = ts.startSession();
+            Result result = ts.startSession();
+            bool succ = result.success;
+            string retval = result.retval;
+            if (!succ)
+            {
+                Lgr.Log("ERROR", retval);
+                return;
+            }
+
             Invoke(new Action(() =>
                           richTextBox1.AppendText(retval)));
 
@@ -92,7 +115,7 @@ namespace WindowsFormsApplication1
         {
             string allVals = tc.getAllValues();
             Invoke(new Action(() =>
-                richTextBox1.AppendText
+                richTextBox1.AppendText 
                 (string.Format("{0}",
                 allVals))));
 
@@ -474,38 +497,178 @@ namespace WindowsFormsApplication1
             Invoke(new Action(() => richTextBox1.AppendText("-------------- FINISHED INITIAL PULL -------------")));
         }
 
+        public class DataRecord
+        {
+            public string security1 { get; set; }
+            public string security2 { get; set; }
+            public string currency1 { get; set; }
+            public string currency2 { get; set; }
+            public string security1scale { get; set; }
+            public string security2scale { get; set; }
+            public string arbidir { get; set; }
+        }
+
+        private int get_Securities()
+        { 
+            // Input handling and validation.
+            List<string> _securityList1 = new List<string>();
+            List<string> _securityList2 = new List<string>();
+            List<string> _securityScale1 = new List<string>();
+            List<string> _securityScale2 = new List<string>();
+            List<string> _currencyList1 = new List<string>();
+            List<string> _currencyList2 = new List<string>();
+            // FIXME: per row or global?
+            List<string> _arbidir = new List<string>();
+            // FIXME: missing expensesEUR, expensesperc (found in appconfig), needed?
+
+            // FIXME: configurable filename?
+            using (var sr = new StreamReader(@"securities.csv"))
+            {
+                var reader = new CsvReader(sr);
+                IEnumerable<DataRecord> records = reader.GetRecords<DataRecord>();
+                int i = 1;
+                bool error;
+
+                foreach (DataRecord record in records)
+                {
+                    string dirvalue = "";
+                    error = false;
+                    i++;
+                    foreach (var prop in record.GetType().GetProperties())
+                    {
+                        string value = String.Format("{0}", prop.GetValue(record));
+                        if (String.IsNullOrEmpty(value))
+                        {
+                            Invoke(new Action(() => richTextBox1.AppendText(String.Format("Error in securities.csv (line {0}): no value for column {1}\n", i, prop.Name)))); //, prop.GetValue(record)))));
+                            error = true;
+                            continue;
+                        }
+                        if (prop.Name == "security1scale" || prop.Name == "security2scale")
+                        {
+                            try
+                            {
+                                float k = float.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
+                            }
+                            catch (System.FormatException)
+                            {
+                                Invoke(new Action(() => richTextBox1.AppendText(String.Format("Bad {0} (line {1}): {2}\n", prop.Name, i, value))));
+                                error = true;
+                            }
+                        }
+                        else if (prop.Name == "arbidir")
+                        {
+                            dirvalue = value.ToLower();
+                            switch (dirvalue)
+                            {
+                                case "->":
+                                case "to":
+                                    dirvalue = "->";
+                                    break;
+                                case "<-":
+                                case "from":
+                                    dirvalue = "<-";
+                                    break;
+                                case "both":
+                                case "<->":
+                                    dirvalue = "<->";
+                                    break;
+                                default:
+                                    Invoke(new Action(() => richTextBox1.AppendText(String.Format("Bad direction (line {0}): {1}\n", i, value))));
+                                    error = true;
+                                    break;
+                            }
+                        }
+                    }
+                    if (!error)
+                    {
+                        _securityList1.Add(record.security1);
+                        _securityList2.Add(record.security2);
+                        _securityScale1.Add(record.security1scale);
+                        _securityScale1.Add(record.security2scale);
+                        _currencyList1.Add(record.currency1);
+                        _currencyList2.Add(record.currency2); 
+                        _arbidir.Add(dirvalue);
+                        Invoke(new Action(() => richTextBox1.AppendText(String.Format(
+                            "New security: {0} ({2}, {4}) {6} {1} ({3}, {5})\n",
+                            record.security1, record.security2,
+                            record.security1scale, record.security2scale,
+                            record.currency1, record.currency2, dirvalue))));
+                    }
+                }                    
+            }
+            securityList1 = _securityList1.ToArray();
+            securityList2 = _securityList2.ToArray();
+            currencyList1 = _currencyList1.ToArray();
+            currencyList2 = _currencyList2.ToArray();
+            securityScale1 = _securityScale1.ToArray();
+            securityScale2 = _securityScale2.ToArray();
+            return _securityList1.Count;
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
             Lgr.Start();
-            securityList1 = ConfigurationManager.AppSettings["securities1"].Split(',').Select(s => s.Trim()).ToArray();
-            securityList2 = ConfigurationManager.AppSettings["securities2"].Split(',').Select(s => s.Trim()).ToArray();
-            securityScale1 = ConfigurationManager.AppSettings["securities1"].Split(',').Select(s => s.Trim()).ToArray();
-            securityScale2 = ConfigurationManager.AppSettings["securities2"].Split(',').Select(s => s.Trim()).ToArray();
-            currencyList1 = ConfigurationManager.AppSettings["currencies1"].Split(',').Select(s => s.Trim()).ToArray();
-            currencyList2 = ConfigurationManager.AppSettings["currencies2"].Split(',').Select(s => s.Trim()).ToArray();
+            int _securities;
+
+            try
+            {
+                _securities = get_Securities();
+            }
+            catch (CsvHelper.CsvMissingFieldException)
+            {
+                Invoke(new Action(() => richTextBox1.AppendText("Malformed securities.csv.\nSee that the header line is security1,security2,currency1,currency2,security1scale,security2scale,arbidir\n")));
+                return;
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                Invoke(new Action(() => richTextBox1.AppendText("Could not find securities.csv\n")));
+                return;
+            }
+
+            Invoke(new Action(() => richTextBox1.AppendText(String.Format("Found {0} securities\n", _securities))));
+            if (_securities == 0)
+            {
+                Invoke(new Action(() => richTextBox1.AppendText("No valid securities found. Not starting.\n")));
+                return;
+            }
+
             baseCurrency = ConfigurationManager.AppSettings["baseCurrency"];
             profitThresholdEur = Convert.ToInt32(ConfigurationManager.AppSettings["profitThresholdEur"]);
             sendTransactions = Convert.ToBoolean(ConfigurationManager.AppSettings["sendTransaction"]);
             tc = new TransactionComputer
                 (securityList1, securityList2,
-                currencyList1, currencyList2,
-                securityScale1, securityScale2,
-                baseCurrency, profitThresholdEur);
+                 currencyList1, currencyList2,
+                 securityScale1, securityScale2,
+                 baseCurrency, profitThresholdEur);
             ts = new TransactionSender();
-            SessionOptions sessionOptions = new SessionOptions();
-            sessionOptions.ServerHost = "localhost";
-            sessionOptions.ServerPort = 8194;
+            if (running == false)
+            {
+                running = true;
 
-            //pullInitial(sessionOptions);
+                SessionOptions sessionOptions = new SessionOptions();
+                sessionOptions.ServerHost = "localhost";
+                sessionOptions.ServerPort = 8194;
 
-            Session sessionCurr = new Session(sessionOptions, new EventHandler(ProcessEventCurr));
-            sessionCurr.StartAsync();
+                //pullInitial(sessionOptions);
 
-            Session sessionSec = new Session(sessionOptions, new EventHandler(ProcessEventSec));
-            sessionSec.StartAsync();
+                sessionCurr = new Session(sessionOptions, new EventHandler(ProcessEventCurr));
+                sessionCurr.StartAsync();
 
-            //Invoke(new Action(() => richTextBox1.AppendText("moi\n");
-            Invoke(new Action(() => richTextBox1.AppendText("end\n")));
+                sessionSec = new Session(sessionOptions, new EventHandler(ProcessEventSec));
+                sessionSec.StartAsync();
+
+                Invoke(new Action(() => richTextBox1.AppendText("started\n")));
+                this.button1.Text = "Stop";
+            }
+            else
+            {
+                // FIXME: Any danger in stopping, eg. to transactions?
+                running = false;
+                sessionCurr.Stop();
+                sessionSec.Stop();
+                Invoke(new Action(() => richTextBox1.AppendText("stopped\n")));
+                this.button1.Text = "Start";
+            }
         }
 
         private void richTextBox1_TextChanged(object sender, EventArgs e)
