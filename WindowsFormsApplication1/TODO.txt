@@ -1,1 +1,9 @@
-﻿Debugging levels -> better output formatting
+﻿ - Debugging levels -> better output formatting [VH]
+ - Epävarmuusparametrit [?]
+ - Tilan säilytys [SP]
+ - Reload [JE]
+ - Asynkronisuuden toteutus (Sender/Receiver)
+   - Osto
+   - Myynti
+   - Tilan ylläpito
+ - Partial fill -kommunikaatio ja laskenta [Tartteeko tehdä]
